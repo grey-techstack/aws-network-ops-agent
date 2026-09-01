@@ -1,0 +1,134 @@
+# AWS Network-Ops Agent
+
+> A natural-language AWS network-operations agent — ask a plain-English question, get an end-to-end trace across your edge-to-origin path. Built on **Amazon Bedrock + LangChain**, deployed **serverless (Lambda + API Gateway)**, and callable straight from **Microsoft Teams**.
+
+![Python](https://img.shields.io/badge/python-3.9%2B-blue)
+![LLM](https://img.shields.io/badge/LLM-Amazon%20Bedrock-orange)
+![IaC](https://img.shields.io/badge/IaC-CloudFormation%20%7C%20Terraform-844fba)
+![License](https://img.shields.io/badge/license-MIT-green)
+![Tests](https://img.shields.io/badge/tests-pytest%20%2B%20hypothesis-brightgreen)
+
+---
+
+## Overview
+
+Network troubleshooting on AWS usually means jumping between Route 53, CloudFront, the WAF, load balancers, target groups, and log queries — one console tab at a time. This agent collapses that into a conversation.
+
+Ask *"trace the DNS path for `app.example.com`"* or *"why is `203.0.113.20` unreachable?"* and the agent plans a sequence of read-only tool calls, walks the request path **from the edge to the origin**, queries the relevant logs, and returns a structured answer with the evidence it used. It runs as a Lambda behind API Gateway and can be driven over REST **or** by `@mention` in a Microsoft Teams channel.
+
+## Key features
+
+- 🔎 **Edge-to-origin FQDN tracing** — resolves a hostname through WAF → Route 53 → CloudFront → ALB/NLB → EC2/EKS origin and reports what it found at each hop.
+- 🧠 **Natural-language log analysis** — turns questions into **Athena** queries over VPC Flow Logs and CloudFront access logs.
+- 🌐 **IP investigation** — maps an IP to its AWS resource, checks it against a corporate egress allowlist, and adds geolocation.
+- 🛠️ **Self-composing AWS CLI tool** — the LLM builds its own AWS CLI commands behind a **read-only operation whitelist**, so it can reach EC2/EKS/RDS/etc. without a bespoke tool per service.
+- 🏢 **Multi-account** — assumes read-only cross-account roles via AWS SSO.
+- 💬 **Microsoft Teams chat** + **n8n / MCP** integrations.
+- ✅ **Production-grade guts** — per-call caching, retries, input validation, structured logging, and a unit + property-based (`hypothesis`) test suite.
+
+## Architecture
+
+**System — request lifecycle**
+
+```mermaid
+flowchart LR
+    U[Engineer] -->|@mention| T[Microsoft Teams]
+    U -->|REST| AGW
+    T --> AGW[API Gateway]
+    AGW --> L[Lambda]
+    subgraph L[Lambda: agent runtime]
+      O[LangChain agent orchestrator] --> B[(Amazon Bedrock LLM)]
+      O --> TL[Tool layer]
+    end
+    TL --> AWS[(AWS APIs: Route53 / CloudFront / ELB / Athena / EC2 / EKS)]
+    TL --> WAF[(External WAF API)]
+```
+
+**The edge-to-origin path the agent traces**
+
+```mermaid
+flowchart LR
+    NET[Internet] --> R53[Route 53]
+    R53 --> WAF[WAF]
+    WAF --> CF[CloudFront]
+    CF --> ALB[ALB / NLB]
+    ALB --> ORIG[EC2 / EKS origin]
+```
+
+## How the agent reasons
+
+- **Tool selection is LLM-driven but constrained.** The system prompt encodes a mandatory FQDN-tracing workflow and anti-hallucination rules ("only report what a tool returned").
+- **The generic AWS CLI tool** lets the model assemble its own commands, but every command is checked against a whitelist that blocks any mutating (`create/put/delete/modify/...`) operation — the agent is **read-only by construction**.
+- **Every tool call** goes through a shared executor that adds caching, retries, and input validation, so a flaky API or a malformed argument degrades gracefully instead of derailing the run.
+
+## Tool layer
+
+| Tool | AWS service / target | Answers |
+|---|---|---|
+| `aws_cli_tool` | any AWS service (whitelisted, read-only) | "describe / list …" that has no dedicated tool |
+| `route53_tool` | Route 53 | DNS records, hosted zones, resolution |
+| `cloudfront_tool` | CloudFront | distributions, origins, behaviors |
+| `elb_tool` | ALB / NLB / ELB | listeners, rules, target health |
+| `ip_lookup_tool` | EC2 EIP + allowlist + geo | which resource / egress an IP belongs to |
+| `athena_vpc_flow_logs_tool` | Athena → VPC Flow Logs | traffic to/from an IP or ENI |
+| `athena_cloudfront_logs_tool` | Athena → CloudFront logs | requests, status codes, cache hits |
+| `f5_waf_tool` | external WAF (Distributed Cloud) | LB / origin-pool / WAF policy lookups |
+
+## Tech stack
+
+**Python 3.9+** · **LangChain** on **Amazon Bedrock** · AWS **Lambda, API Gateway, Route 53, CloudFront, ELB, Athena, DynamoDB, CloudWatch, IAM/SSO** · **CloudFormation / Terraform** IaC · **Pydantic v2** · **pytest + hypothesis + moto** · integrations: **Microsoft Teams**, **n8n (MCP)**.
+
+## Getting started
+
+```bash
+git clone https://github.com/grey-techstack/aws-network-ops-agent.git
+cd aws-network-ops-agent
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+
+cp .env.example .env          # then edit — see Configuration
+pytest -m unit                # run the offline test suite (no AWS needed)
+```
+
+## Configuration
+
+Everything environment-specific is set in `.env` (see `.env.example`) or `config.example.yaml` — **no account, domain, or endpoint is hardcoded**. Point it at *your* environment:
+
+| Key | What to set it to |
+|---|---|
+| `AWS_REGION` | your region, e.g. `ap-southeast-1` |
+| `AWS_ACCOUNT_IDS` | the account id(s) the agent may read (comma-separated) |
+| `BEDROCK_MODEL_ID` | the Bedrock model to use |
+| `HOSTED_DOMAINS` | the domains the agent should recognize as "yours" |
+| `WAF_PROVIDER` / `WAF_BASE_URL` | external WAF integration (leave blank to disable) |
+| `NETWORK_ALLOWLIST_PATH` | path to your egress allowlist (`src/corporate-network-whitelist.tf` template provided) |
+| `API_GATEWAY_URL` / `TEAMS_INCOMING_WEBHOOK_URL` | only for the Teams integration |
+
+Credentials come from your standard AWS chain (env / SSO / role) — the agent never stores keys.
+
+## Deployment
+
+Deploy the Lambda + API Gateway with the provided **CloudFormation** or **Terraform** templates in `deployment/`. Grant the function a **read-only** IAM role (the tool whitelist enforces read-only at the app layer too — defense in depth).
+
+## Integrations
+
+- **Microsoft Teams** — an outgoing-webhook handler responds to `@mention`s and keeps per-conversation context. See `docs/` for setup.
+- **n8n / MCP** — the agent can be exposed as an MCP server so n8n workflows can call it (`n8n-file/`).
+
+## Testing
+
+```bash
+pytest -m unit          # fast, mocked (moto) — no AWS
+pytest -m property      # property-based (hypothesis)
+pytest -m integration   # needs AWS credentials
+```
+
+## Security & design notes
+
+- **Read-only by construction** — mutating AWS operations are blocked by the CLI whitelist; deployment uses a read-only IAM role.
+- **No secrets in the repo** — all credentials/endpoints are supplied via environment/SSO at runtime.
+- The bundled `src/corporate-network-whitelist.tf` ships **example** CIDRs only — replace with your own.
+
+## License
+
+[MIT](./LICENSE)

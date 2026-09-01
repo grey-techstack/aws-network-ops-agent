@@ -1,0 +1,27 @@
+# AWS Network-Ops Agent — example configuration (YAML alternative to .env).
+# Copy to config.yaml and edit. All values are placeholders — replace with yours.
+# Secrets (tokens/keys) do NOT belong here; supply them via env / Secrets Manager.
+
+aws:
+  region: ap-southeast-1
+  account_ids:            # accounts the agent may read
+    - "123456789012"
+  bedrock_model_id: anthropic.claude-3-5-sonnet-20240620-v1:0
+
+# Domains the FQDN tracer treats as "yours".
+hosted_domains:
+  - example.com
+
+# External WAF integration (optional). Leave provider empty to disable.
+waf:
+  provider: ""           # e.g. "f5xc"
+  base_url: ""           # e.g. https://your-tenant.console.ves.volterra.io/api
+  # token: supplied via env/Secrets Manager, never in this file
+
+# Corporate egress allowlist consumed by ip_lookup_tool.
+network_allowlist_path: src/corporate-network-whitelist.tf
+
+# Teams integration (optional).
+teams:
+  api_gateway_url: ""
+  incoming_webhook_url: ""

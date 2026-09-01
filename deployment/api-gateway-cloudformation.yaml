@@ -1,0 +1,344 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'API Gateway REST API for AWS Operations Agent'
+
+Parameters:
+  LambdaFunctionArn:
+    Type: String
+    Description: ARN of the Lambda function to integrate with API Gateway
+    
+  ApiStageName:
+    Type: String
+    Description: Name of the API Gateway stage
+    Default: prod
+    
+  EnableApiKey:
+    Type: String
+    Description: Enable API key authentication
+    Default: 'false'
+    AllowedValues:
+      - 'true'
+      - 'false'
+      
+  ApiKeyName:
+    Type: String
+    Description: Name for the API key (if enabled)
+    Default: aws-ops-agent-api-key
+    
+  EnableCloudWatchLogs:
+    Type: String
+    Description: Enable CloudWatch logging for API Gateway
+    Default: 'true'
+    AllowedValues:
+      - 'true'
+      - 'false'
+
+Conditions:
+  CreateApiKey: !Equals [!Ref EnableApiKey, 'true']
+  EnableLogging: !Equals [!Ref EnableCloudWatchLogs, 'true']
+
+Resources:
+  # REST API
+  AwsOpsAgentApi:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Name: aws-ops-agent-api
+      Description: REST API for AWS Operations Agent
+      EndpointConfiguration:
+        Types:
+          - REGIONAL
+      Policy:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal: '*'
+            Action: 'execute-api:Invoke'
+            Resource: '*'
+
+  # /query resource
+  QueryResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref AwsOpsAgentApi
+      ParentId: !GetAtt AwsOpsAgentApi.RootResourceId
+      PathPart: query
+
+  # POST method for /query
+  QueryPostMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref AwsOpsAgentApi
+      ResourceId: !Ref QueryResource
+      HttpMethod: POST
+      AuthorizationType: !If [CreateApiKey, 'API_KEY', 'NONE']
+      ApiKeyRequired: !If [CreateApiKey, true, false]
+      RequestModels:
+        application/json: !Ref QueryRequestModel
+      RequestValidatorId: !Ref RequestValidator
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaFunctionArn}/invocations'
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+      MethodResponses:
+        - StatusCode: 200
+          ResponseModels:
+            application/json: !Ref QueryResponseModel
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Origin: true
+        - StatusCode: 400
+          ResponseModels:
+            application/json: !Ref ErrorResponseModel
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Origin: true
+        - StatusCode: 500
+          ResponseModels:
+            application/json: !Ref ErrorResponseModel
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Origin: true
+
+  # OPTIONS method for CORS preflight
+  QueryOptionsMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref AwsOpsAgentApi
+      ResourceId: !Ref QueryResource
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      Integration:
+        Type: MOCK
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'POST,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            ResponseTemplates:
+              application/json: ''
+        RequestTemplates:
+          application/json: '{"statusCode": 200}'
+      MethodResponses:
+        - StatusCode: 200
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Methods: true
+            method.response.header.Access-Control-Allow-Origin: true
+
+  # Request/Response Models
+  QueryRequestModel:
+    Type: AWS::ApiGateway::Model
+    Properties:
+      RestApiId: !Ref AwsOpsAgentApi
+      ContentType: application/json
+      Name: QueryRequest
+      Schema:
+        $schema: 'http://json-schema.org/draft-04/schema#'
+        title: Query Request
+        type: object
+        required:
+          - query
+        properties:
+          query:
+            type: string
+            minLength: 1
+            description: Natural language query for the agent
+          session_id:
+            type: string
+            description: Optional session ID for conversation context
+          max_results:
+            type: integer
+            minimum: 1
+            maximum: 1000
+            default: 100
+            description: Maximum number of results to return
+
+  QueryResponseModel:
+    Type: AWS::ApiGateway::Model
+    Properties:
+      RestApiId: !Ref AwsOpsAgentApi
+      ContentType: application/json
+      Name: QueryResponse
+      Schema:
+        $schema: 'http://json-schema.org/draft-04/schema#'
+        title: Query Response
+        type: object
+        properties:
+          status:
+            type: string
+            enum: [success, error]
+          result_type:
+            type: string
+          output:
+            type: string
+          query:
+            type: string
+          session_id:
+            type: string
+          timestamp:
+            type: string
+          execution_time_ms:
+            type: integer
+
+  ErrorResponseModel:
+    Type: AWS::ApiGateway::Model
+    Properties:
+      RestApiId: !Ref AwsOpsAgentApi
+      ContentType: application/json
+      Name: ErrorResponse
+      Schema:
+        $schema: 'http://json-schema.org/draft-04/schema#'
+        title: Error Response
+        type: object
+        properties:
+          status:
+            type: string
+            enum: [error]
+          error_type:
+            type: string
+          error_message:
+            type: string
+          timestamp:
+            type: string
+
+  # Request Validator
+  RequestValidator:
+    Type: AWS::ApiGateway::RequestValidator
+    Properties:
+      RestApiId: !Ref AwsOpsAgentApi
+      Name: query-request-validator
+      ValidateRequestBody: true
+      ValidateRequestParameters: true
+
+  # Lambda Permission for API Gateway
+  LambdaInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref LambdaFunctionArn
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${AwsOpsAgentApi}/*/*/*'
+
+  # API Deployment
+  ApiDeployment:
+    Type: AWS::ApiGateway::Deployment
+    DependsOn:
+      - QueryPostMethod
+      - QueryOptionsMethod
+    Properties:
+      RestApiId: !Ref AwsOpsAgentApi
+      Description: !Sub 'Deployment for ${ApiStageName} stage'
+
+  # API Stage
+  ApiStage:
+    Type: AWS::ApiGateway::Stage
+    Properties:
+      RestApiId: !Ref AwsOpsAgentApi
+      DeploymentId: !Ref ApiDeployment
+      StageName: !Ref ApiStageName
+      Description: !Sub '${ApiStageName} stage for AWS Operations Agent API'
+      TracingEnabled: true
+      MethodSettings:
+        - ResourcePath: '/*'
+          HttpMethod: '*'
+          LoggingLevel: !If [EnableLogging, 'INFO', 'OFF']
+          DataTraceEnabled: !If [EnableLogging, true, false]
+          MetricsEnabled: true
+          ThrottlingBurstLimit: 100
+          ThrottlingRateLimit: 50
+      Variables:
+        environment: !Ref ApiStageName
+
+  # CloudWatch Logs Role for API Gateway
+  ApiGatewayCloudWatchRole:
+    Type: AWS::IAM::Role
+    Condition: EnableLogging
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: apigateway.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs
+      Path: /
+
+  # API Gateway Account (for CloudWatch Logs)
+  ApiGatewayAccount:
+    Type: AWS::ApiGateway::Account
+    Condition: EnableLogging
+    Properties:
+      CloudWatchRoleArn: !GetAtt ApiGatewayCloudWatchRole.Arn
+
+  # API Key (optional)
+  ApiKey:
+    Type: AWS::ApiGateway::ApiKey
+    Condition: CreateApiKey
+    DependsOn: ApiStage
+    Properties:
+      Name: !Ref ApiKeyName
+      Description: API Key for AWS Operations Agent
+      Enabled: true
+
+  # Usage Plan (if API key is enabled)
+  UsagePlan:
+    Type: AWS::ApiGateway::UsagePlan
+    Condition: CreateApiKey
+    DependsOn: ApiStage
+    Properties:
+      UsagePlanName: aws-ops-agent-usage-plan
+      Description: Usage plan for AWS Operations Agent API
+      ApiStages:
+        - ApiId: !Ref AwsOpsAgentApi
+          Stage: !Ref ApiStageName
+      Throttle:
+        BurstLimit: 100
+        RateLimit: 50
+      Quota:
+        Limit: 10000
+        Period: DAY
+
+  # Link API Key to Usage Plan
+  UsagePlanKey:
+    Type: AWS::ApiGateway::UsagePlanKey
+    Condition: CreateApiKey
+    Properties:
+      KeyId: !Ref ApiKey
+      KeyType: API_KEY
+      UsagePlanId: !Ref UsagePlan
+
+Outputs:
+  ApiEndpoint:
+    Description: API Gateway endpoint URL
+    Value: !Sub 'https://${AwsOpsAgentApi}.execute-api.${AWS::Region}.amazonaws.com/${ApiStageName}/query'
+    Export:
+      Name: !Sub '${AWS::StackName}-ApiEndpoint'
+
+  ApiId:
+    Description: API Gateway REST API ID
+    Value: !Ref AwsOpsAgentApi
+    Export:
+      Name: !Sub '${AWS::StackName}-ApiId'
+
+  ApiKeyId:
+    Condition: CreateApiKey
+    Description: API Key ID (retrieve value from AWS Console or CLI)
+    Value: !Ref ApiKey
+    Export:
+      Name: !Sub '${AWS::StackName}-ApiKeyId'
+
+  ApiKeyValue:
+    Condition: CreateApiKey
+    Description: Command to retrieve API Key value
+    Value: !Sub 'aws apigateway get-api-key --api-key ${ApiKey} --include-value --query value --output text'
+
+  CurlExample:
+    Description: Example curl command to test the API
+    Value: !Sub |
+      curl -X POST https://${AwsOpsAgentApi}.execute-api.${AWS::Region}.amazonaws.com/${ApiStageName}/query \
+        -H "Content-Type: application/json" \
+        ${CreateApiKey ? '-H "x-api-key: YOUR_API_KEY" \' : ''}\
+        -d '{"query": "Trace demo.example.com"}'

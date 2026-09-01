@@ -1,0 +1,245 @@
+Teams Webhook Integration Flow
+================================
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│                          TEAMS CHANNEL                                  │
+│                                                                         │
+│  👤 User types:                                                         │
+│     @AWSBot 查詢 n8n 的 DNS                                            │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+                                  │
+                                  │ (1) Outgoing Webhook
+                                  │     POST request with:
+                                  │     {
+                                  │       "type": "message",
+                                  │       "text": "<at>AWSBot</at> 查詢 n8n 的 DNS",
+                                  │       "from": {"name": "User"},
+                                  │       "conversation": {"id": "conv-123"}
+                                  │     }
+                                  ↓
+┌─────────────────────────────────────────────────────────────────────────┐
+│                          API GATEWAY                                    │
+│                     (POST /query endpoint)                              │
+│                                                                         │
+│  • Receives Teams webhook payload                                      │
+│  • Forwards to Lambda                                                  │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+                                  │
+                                  │ (2) Invoke Lambda
+                                  ↓
+┌─────────────────────────────────────────────────────────────────────────┐
+│                      LAMBDA FUNCTION                                    │
+│                 (teams_webhook_handler)                                 │
+│                                                                         │
+│  ┌───────────────────────────────────────────────────────────────────┐ │
+│  │ SYNC HANDLER (< 5 seconds)                                        │ │
+│  │                                                                   │ │
+│  │  1. Parse Teams payload                                          │ │
+│  │     • Extract query text                                         │ │
+│  │     • Remove <at>BotName</at> tags                              │ │
+│  │     • Get user info & conversation ID                           │ │
+│  │                                                                   │ │
+│  │  2. Invoke self asynchronously                                   │ │
+│  │     • Create async payload                                       │ │
+│  │     • Lambda.invoke(InvocationType='Event')                     │ │
+│  │                                                                   │ │
+│  │  3. Return immediate response                                    │ │
+│  │     {                                                            │ │
+│  │       "statusCode": 200,                                         │ │
+│  │       "body": {                                                  │ │
+│  │         "type": "message",                                       │ │
+│  │         "text": "🔄 正在處理您的查詢..."                        │ │
+│  │       }                                                          │ │
+│  │     }                                                            │ │
+│  │                                                                   │ │
+│  └───────────────────────────────────────────────────────────────────┘ │
+│                                  │                                      │
+│                                  │ (3) Async Invocation                 │
+│                                  │     (Event type, no wait)            │
+│                                  ↓                                      │
+│  ┌───────────────────────────────────────────────────────────────────┐ │
+│  │ ASYNC HANDLER (20-60 seconds)                                    │ │
+│  │                                                                   │ │
+│  │  1. Initialize Agent                                             │ │
+│  │     • Load credentials                                           │ │
+│  │     • Setup tools (F5, Route53, ALB, etc.)                      │ │
+│  │                                                                   │ │
+│  │  2. Execute Query                                                │ │
+│  │     • Parse natural language query                              │ │
+│  │     • Call appropriate AWS tools                                │ │
+│  │     • Aggregate results                                         │ │
+│  │                                                                   │ │
+│  │  3. Format Result                                                │ │
+│  │     • Create Adaptive Card                                      │ │
+│  │     • Add emojis and formatting                                 │ │
+│  │     • Include execution time                                    │ │
+│  │                                                                   │ │
+│  │  4. Send to Teams                                                │ │
+│  │     • POST to Incoming Webhook URL                              │ │
+│  │                                                                   │ │
+│  └───────────────────────────────────────────────────────────────────┘ │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+                                  │
+                                  │ (4) POST result to Incoming Webhook
+                                  │     {
+                                  │       "type": "message",
+                                  │       "attachments": [{
+                                  │         "contentType": "application/vnd.microsoft.card.adaptive",
+                                  │         "content": {
+                                  │           "type": "AdaptiveCard",
+                                  │           "body": [
+                                  │             {"type": "TextBlock", "text": "🤖 AWSBot 查詢結果"},
+                                  │             {"type": "TextBlock", "text": "📍 DNS: n8n-dgt-dev..."}
+                                  │           ]
+                                  │         }
+                                  │       }]
+                                  │     }
+                                  ↓
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    TEAMS INCOMING WEBHOOK                               │
+│                                                                         │
+│  • Receives formatted message                                          │
+│  • Posts to original channel                                           │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+                                  │
+                                  │ (5) Display result
+                                  ↓
+┌─────────────────────────────────────────────────────────────────────────┐
+│                          TEAMS CHANNEL                                  │
+│                                                                         │
+│  🤖 AWSBot:                                                             │
+│     ┌─────────────────────────────────────────────────────────────┐   │
+│     │ 🤖 AWSBot 查詢結果                                          │   │
+│     │                                                             │   │
+│     │ 📍 DNS: n8n-dgt-dev.internal.example.com                       │   │
+│     │ ⚖️ ALB: alb-core-net-apse1-dev                             │   │
+│     │ 🎯 Targets: 2/4 healthy                                     │   │
+│     │                                                             │   │
+│     │ ⏱️ 執行時間: 45000ms                                        │   │
+│     └─────────────────────────────────────────────────────────────┘   │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+
+
+TIMING BREAKDOWN
+================
+
+Phase 1: Sync Response (< 5 seconds)
+-------------------------------------
+0.0s  │ User sends message in Teams
+0.1s  │ Teams sends to API Gateway
+0.2s  │ API Gateway invokes Lambda
+0.5s  │ Lambda parses payload
+1.0s  │ Lambda invokes self async
+1.5s  │ Lambda returns "Processing..."
+2.0s  │ Teams displays "Processing..." message
+      │
+      └─→ User sees immediate feedback ✓
+
+
+Phase 2: Async Processing (20-60 seconds)
+------------------------------------------
+0.0s  │ Async Lambda starts
+2.0s  │ Agent initialized
+5.0s  │ Query parsed
+10.0s │ F5 API called
+20.0s │ Route53 queried
+30.0s │ ALB status checked
+40.0s │ Results aggregated
+45.0s │ Formatted for Teams
+46.0s │ Sent to Incoming Webhook
+47.0s │ Teams displays final result
+      │
+      └─→ User sees complete answer ✓
+
+
+KEY BENEFITS
+============
+
+✅ No 5-second timeout issue
+   • Sync handler returns immediately
+   • Async processing happens in background
+
+✅ Better user experience
+   • User knows request is being processed
+   • No "Unable to reach app" errors
+
+✅ Scalable
+   • Lambda can handle long-running queries
+   • Multiple requests processed in parallel
+
+✅ Reliable
+   • Errors sent back to Teams
+   • Full logging in CloudWatch
+
+
+COMPONENTS NEEDED
+=================
+
+1. Teams Outgoing Webhook
+   • Created in Teams Apps
+   • Points to API Gateway URL
+   • Sends user messages to Lambda
+
+2. API Gateway
+   • Receives webhook POST requests
+   • Forwards to Lambda
+   • Returns sync response
+
+3. Lambda Function
+   • teams_webhook_handler.py
+   • Handles both sync and async modes
+   • Processes queries and sends results
+
+4. Teams Incoming Webhook
+   • Created in Teams Channel Connectors
+   • Receives results from Lambda
+   • Posts messages back to channel
+
+5. Environment Variables
+   • TEAMS_INCOMING_WEBHOOK_URL (required)
+   • TEAMS_SECURITY_TOKEN (optional)
+   • All existing Lambda env vars
+
+
+SECURITY CONSIDERATIONS
+=======================
+
+1. Verify Teams Signature
+   • Check Authorization header
+   • Validate security token
+
+2. Limit API Gateway Access
+   • IP whitelist for Teams
+   • Rate limiting
+
+3. Secure Webhook URLs
+   • Store in Secrets Manager
+   • Rotate periodically
+
+4. IAM Permissions
+   • Lambda self-invoke permission
+   • Minimal required permissions
+
+
+MONITORING
+==========
+
+CloudWatch Logs:
+• /aws/lambda/aws-ops-agent-dev
+• Filter: "Teams webhook"
+
+CloudWatch Metrics:
+• Lambda Duration
+• Lambda Errors
+• Lambda Concurrent Executions
+• API Gateway 4xx/5xx
+
+CloudWatch Alarms:
+• Lambda error rate > 5%
+• Lambda duration > 60s
+• API Gateway 5xx > 10

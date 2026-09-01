@@ -1,0 +1,12 @@
+{
+  "Environment": {
+    "Variables": {
+      "SSO_ROLE_ARN": "arn:aws:iam::ACCOUNT_ID:role/GlobalReaderRole",
+      "F5_SECRET_NAME": "f5-distributed-cloud-api-credentials",
+      "CORE_NETWORK_ACCOUNT_ID": "111111111111",
+      "WORKLOAD_ACCOUNT_IDS": "222222222222,333333333333,444444444444",
+      "ATHENA_DATABASE": "centralized_logging",
+      "ATHENA_OUTPUT_BUCKET": "aws-ops-agent-athena-results-ACCOUNT_ID-REGION"
+    }
+  }
+}

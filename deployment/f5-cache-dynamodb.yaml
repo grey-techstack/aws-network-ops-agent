@@ -1,0 +1,118 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'F5 LB cache: DynamoDB + Cache Updater Lambda + EventBridge Scheduler'
+
+Resources:
+  # =========================================
+  # DynamoDB Table
+  # =========================================
+  F5CacheTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: aws-ops-agent-f5-cache
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+      Tags:
+        - Key: Application
+          Value: aws-ops-agent
+
+  # =========================================
+  # Cache Updater Lambda
+  # =========================================
+  CacheUpdaterFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: aws-ops-agent-f5-cache-updater
+      Runtime: python3.11
+      Handler: src.f5_cache_updater.lambda_handler
+      Timeout: 300
+      MemorySize: 256
+      Role: !GetAtt CacheUpdaterRole.Arn
+      Code:
+        S3Bucket: aws-ops-agent-deployment-123456789012-ap-southeast-1
+        S3Key: aws-ops-agent-function.zip
+      Environment:
+        Variables:
+          F5_SECRET_NAME: f5-distributed-cloud-api-credentials
+          F5_CACHE_TABLE: aws-ops-agent-f5-cache
+          F5_CACHE_TTL_HOURS: '48'
+      Layers:
+        - !Sub 'arn:aws:lambda:${AWS::Region}:123456789012:layer:aws-ops-agent-layer-dev:1'
+      Tags:
+        - Key: Application
+          Value: aws-ops-agent
+
+  # =========================================
+  # IAM Role for Cache Updater
+  # =========================================
+  CacheUpdaterRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: aws-ops-agent-f5-cache-updater-role
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: f5-cache-updater-policy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Sid: DynamoDBAccess
+                Effect: Allow
+                Action:
+                  - dynamodb:PutItem
+                  - dynamodb:BatchWriteItem
+                  - dynamodb:Query
+                Resource: !GetAtt F5CacheTable.Arn
+              - Sid: SecretsManagerAccess
+                Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                Resource: !Sub 'arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:f5-distributed-cloud-api-credentials-*'
+
+  # =========================================
+  # EventBridge Scheduler (every 6 hours)
+  # =========================================
+  CacheUpdaterSchedule:
+    Type: AWS::Events::Rule
+    Properties:
+      Name: aws-ops-agent-f5-cache-refresh
+      Description: Refresh F5 LB cache daily
+      ScheduleExpression: 'rate(1 day)'
+      State: ENABLED
+      Targets:
+        - Id: f5-cache-updater
+          Arn: !GetAtt CacheUpdaterFunction.Arn
+
+  CacheUpdaterPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref CacheUpdaterFunction
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt CacheUpdaterSchedule.Arn
+
+Outputs:
+  F5CacheTableName:
+    Value: !Ref F5CacheTable
+  CacheUpdaterFunctionName:
+    Value: !Ref CacheUpdaterFunction
+  ScheduleArn:
+    Value: !GetAtt CacheUpdaterSchedule.Arn

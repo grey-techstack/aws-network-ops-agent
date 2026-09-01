@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AWS Operations Agent - User Guide</title>
+    <style>
+        :root {
+            --primary: #232f3e;
+            --secondary: #ff9900;
+            --accent: #146eb4;
+            --success: #1e8900;
+            --warning: #ff9900;
+            --danger: #d13212;
+            --light: #f8f9fa;
+            --dark: #16191f;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--dark);
+            background: var(--light);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--primary) 0%, #37475a 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin: 5px;
+        }
+        
+        .badge-primary { background: var(--secondary); color: var(--dark); }
+        .badge-info { background: var(--accent); color: white; }
+        .badge-success { background: var(--success); color: white; }
+        .badge-warning { background: var(--warning); color: var(--dark); }
+        .badge-danger { background: var(--danger); color: white; }
+        
+        nav {
+            background: white;
+            padding: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        nav ul {
+            list-style: none;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        nav a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+        
+        nav a:hover {
+            background: var(--secondary);
+            color: var(--dark);
+        }
+        
+        section {
+            background: white;
+            margin: 30px 0;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+        }
+        
+        h2 {
+            color: var(--primary);
+            border-bottom: 3px solid var(--secondary);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        
+        h3 {
+            color: var(--accent);
+            margin: 20px 0 10px;
+        }
+        
+        .tool-card {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+            transition: all 0.3s;
+        }
+        
+        .tool-card:hover {
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+        
+        .tool-card h4 {
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .tool-card .icon {
+            font-size: 1.5rem;
+        }
+        
+        .tool-card p {
+            margin: 10px 0;
+            color: #555;
+        }
+        
+        .tool-card code {
+            background: #f4f4f4;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: 'Consolas', monospace;
+            font-size: 0.9rem;
+        }
+        
+        .example-box {
+            background: #f8f9fa;
+            border-left: 4px solid var(--accent);
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .example-box pre {
+            background: var(--dark);
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-size: 0.85rem;
+        }
+        
+        /* Workflow Diagram Styles */
+        .workflow-diagram {
+            background: linear-gradient(to bottom, #fafafa, #f0f0f0);
+            padding: 30px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .workflow-step {
+            display: flex;
+            align-items: flex-start;
+            margin: 20px 0;
+            position: relative;
+        }
+        
+        .step-number {
+            width: 50px;
+            height: 50px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+        
+        .step-number.exception {
+            background: var(--warning);
+            color: var(--dark);
+        }
+        
+        .step-content {
+            margin-left: 20px;
+            flex: 1;
+        }
+        
+        .step-content h4 {
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+        
+        .step-connector {
+            position: absolute;
+            left: 24px;
+            top: 50px;
+            width: 2px;
+            height: 40px;
+            background: var(--secondary);
+        }
+        
+        .flow-chart {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .flow-node {
+            padding: 15px 25px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 500;
+            min-width: 150px;
+        }
+        
+        .flow-node.f5 { background: #ff6b6b; color: white; }
+        .flow-node.dns { background: #4ecdc4; color: white; }
+        .flow-node.cloudfront { background: #45b7d1; color: white; }
+        .flow-node.alb { background: #96ceb4; color: var(--dark); }
+        .flow-node.target { background: #ffeaa7; color: var(--dark); }
+        
+        .flow-arrow {
+            display: flex;
+            align-items: center;
+            font-size: 1.5rem;
+            color: var(--secondary);
+        }
+        
+        .alert {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        
+        .alert-warning {
+            background: #fff3cd;
+            border-left: 4px solid var(--warning);
+        }
+        
+        .alert-info {
+            background: #d1ecf1;
+            border-left: 4px solid var(--accent);
+        }
+        
+        .alert-danger {
+            background: #f8d7da;
+            border-left: 4px solid var(--danger);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        th {
+            background: var(--primary);
+            color: white;
+        }
+        
+        tr:hover {
+            background: #f5f5f5;
+        }
+        
+        .query-examples {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .query-category {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        
+        .query-category h4 {
+            color: var(--accent);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .query-category ul {
+            list-style: none;
+        }
+        
+        .query-category li {
+            padding: 8px 0;
+            border-bottom: 1px dashed #ddd;
+            font-family: 'Consolas', monospace;
+            font-size: 0.9rem;
+        }
+        
+        .query-category li:last-child {
+            border-bottom: none;
+        }
+        
+        footer {
+            background: var(--primary);
+            color: white;
+            text-align: center;
+            padding: 30px;
+            margin-top: 40px;
+        }
+        
+        @media (max-width: 768px) {
+            header h1 { font-size: 1.8rem; }
+            nav ul { flex-direction: column; align-items: center; }
+            .flow-chart { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🤖 AWS Operations Agent</h1>
+        <p>AI-Powered Infrastructure Troubleshooting & Analysis Tool</p>
+        <div style="margin-top: 20px;">
+            <span class="badge badge-primary">F5 WAF</span>
+            <span class="badge badge-info">Route53</span>
+            <span class="badge badge-success">CloudFront</span>
+            <span class="badge badge-warning">ALB/NLB</span>
+            <span class="badge badge-danger">VPC Flow Logs</span>
+        </div>
+    </header>
+    
+    <nav>
+        <ul>
+            <li><a href="#overview">Overview</a></li>
+            <li><a href="#workflow">Workflow</a></li>
+            <li><a href="#tools">Available Tools</a></li>
+            <li><a href="#examples">Query Examples</a></li>
+            <li><a href="#best-practices">Best Practices</a></li>
+        </ul>
+    </nav>
+    
+    <div class="container">
+        <!-- Overview Section -->
+        <section id="overview">
+            <h2>📋 Overview</h2>
+            <p>The AWS Operations Agent is an AI-powered tool designed to help DevOps engineers troubleshoot and analyze AWS infrastructure. It provides intelligent querying capabilities across multiple services and can trace requests end-to-end through your infrastructure.</p>
+            
+            <h3>Key Capabilities</h3>
+            <table>
+                <tr>
+                    <th>Service</th>
+                    <th>Capabilities</th>
+                </tr>
+                <tr>
+                    <td><strong>🛡️ F5 WAF</strong></td>
+                    <td>Load balancer configs, origin pools, backend servers, certificates</td>
+                </tr>
+                <tr>
+                    <td><strong>📍 Route53 DNS</strong></td>
+                    <td>Hosted zones, DNS records (A, CNAME, ALIAS), domain resolution</td>
+                </tr>
+                <tr>
+                    <td><strong>☁️ CloudFront CDN</strong></td>
+                    <td>Distribution configs, origins, aliases, caching behaviors</td>
+                </tr>
+                <tr>
+                    <td><strong>⚖️ ALB/NLB</strong></td>
+                    <td>Target groups, health checks, listener rules, routing</td>
+                </tr>
+                <tr>
+                    <td><strong>📊 Log Analysis</strong></td>
+                    <td>VPC Flow Logs, CloudFront access logs via Athena</td>
+                </tr>
+            </table>
+        </section>
+
+        <!-- Workflow Section -->
+        <section id="workflow">
+            <h2>🔄 FQDN Tracing Workflow</h2>
+            
+            <div class="alert alert-danger">
+                <strong>⚠️ CRITICAL RULE:</strong> When tracing ANY domain, you MUST follow this exact order. Skipping steps will result in incomplete or incorrect analysis.
+            </div>
+            
+            <!-- Visual Flow Chart -->
+            <h3>Request Flow Path</h3>
+            <div class="flow-chart">
+                <div class="flow-node f5">🛡️ F5 WAF<br><small>First Layer</small></div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-node dns">📍 Route53<br><small>DNS Resolution</small></div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-node cloudfront">☁️ CloudFront<br><small>CDN Layer</small></div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-node alb">⚖️ ALB/NLB<br><small>Load Balancer</small></div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-node target">🎯 Targets<br><small>EC2/ECS/Lambda</small></div>
+            </div>
+            
+            <!-- Step by Step Workflow -->
+            <div class="workflow-diagram">
+                <h3>Step-by-Step Workflow</h3>
+                
+                <div class="workflow-step">
+                    <div class="step-number exception">!</div>
+                    <div class="step-content">
+                        <h4>Exception Check: internal.example.com</h4>
+                        <p>If FQDN contains <code>internal.example.com</code>, skip F5 check and start with Route53 DNS.</p>
+                        <p><em>Reason: internal.example.com domains are NOT managed by F5 WAF</em></p>
+                    </div>
+                    <div class="step-connector"></div>
+                </div>
+                
+                <div class="workflow-step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h4>Check F5 WAF (MANDATORY FIRST STEP)</h4>
+                        <p>Call <code>query_f5_load_balancer</code> with the FQDN</p>
+                        <p>If found, <strong>MUST</strong> call <code>query_f5_origin_pool</code> for each origin pool</p>
+                        <div class="alert alert-warning">
+                            <strong>Required Output:</strong> Origin server type, IP/DNS, port, health check config
+                        </div>
+                    </div>
+                    <div class="step-connector"></div>
+                </div>
+                
+                <div class="workflow-step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h4>DNS Resolution (Route53)</h4>
+                        <p>Query hosted zones and DNS records</p>
+                        <p>Identify record type (A, CNAME, ALIAS) and target</p>
+                    </div>
+                    <div class="step-connector"></div>
+                </div>
+                
+                <div class="workflow-step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h4>Check CloudFront (if applicable)</h4>
+                        <p>If DNS points to <code>*.cloudfront.net</code>, query distribution details</p>
+                        <p>Check origins and cache behaviors</p>
+                    </div>
+                    <div class="step-connector"></div>
+                </div>
+                
+                <div class="workflow-step">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <h4>Check ALB/NLB (if applicable)</h4>
+                        <p>If target is <code>*.elb.amazonaws.com</code>, query load balancer</p>
+                        <p>Get listeners, rules, target groups, and health status</p>
+                    </div>
+                    <div class="step-connector"></div>
+                </div>
+                
+                <div class="workflow-step">
+                    <div class="step-number">5</div>
+                    <div class="step-content">
+                        <h4>Summarize Complete Flow</h4>
+                        <p>Present the full infrastructure path from user request to backend targets</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Workflow Diagram SVG -->
+            <h3>Decision Flow Diagram</h3>
+            <div style="text-align: center; padding: 20px; background: white; border-radius: 10px;">
+                <svg viewBox="0 0 800 600" style="max-width: 100%; height: auto;">
+                    <!-- Start -->
+                    <ellipse cx="400" cy="30" rx="60" ry="25" fill="#232f3e"/>
+                    <text x="400" y="35" text-anchor="middle" fill="white" font-size="14">Start</text>
+                    
+                    <!-- Arrow to decision -->
+                    <line x1="400" y1="55" x2="400" y2="80" stroke="#ff9900" stroke-width="2" marker-end="url(#arrowhead)"/>
+                    
+                    <!-- Decision: internal.example.com? -->
+                    <polygon points="400,90 500,140 400,190 300,140" fill="#fff3cd" stroke="#ff9900" stroke-width="2"/>
+                    <text x="400" y="135" text-anchor="middle" font-size="11">Contains</text>
+                    <text x="400" y="150" text-anchor="middle" font-size="11">internal.example.com?</text>
+                    
+                    <!-- Yes branch -->
+                    <line x1="500" y1="140" x2="600" y2="140" stroke="#ff9900" stroke-width="2"/>
+                    <text x="550" y="130" font-size="12" fill="#1e8900">Yes</text>
+                    <line x1="600" y1="140" x2="600" y2="280" stroke="#ff9900" stroke-width="2"/>
+                    <line x1="600" y1="280" x2="480" y2="280" stroke="#ff9900" stroke-width="2" marker-end="url(#arrowhead)"/>
+                    
+                    <!-- No branch to F5 -->
+                    <line x1="400" y1="190" x2="400" y2="220" stroke="#ff9900" stroke-width="2" marker-end="url(#arrowhead)"/>
+                    <text x="415" y="210" font-size="12" fill="#d13212">No</text>
+                    
+                    <!-- F5 WAF Check -->
+                    <rect x="300" y="230" width="200" height="50" rx="5" fill="#ff6b6b"/>
+                    <text x="400" y="250" text-anchor="middle" fill="white" font-size="12">🛡️ Step 1: F5 WAF Check</text>
+                    <text x="400" y="268" text-anchor="middle" fill="white" font-size="10">query_f5_load_balancer</text>
+                    
+                    <!-- Arrow to Route53 -->
+                    <line x1="400" y1="280" x2="400" y2="310" stroke="#ff9900" stroke-width="2" marker-end="url(#arrowhead)"/>
+                    
+                    <!-- Route53 -->
+                    <rect x="300" y="320" width="200" height="50" rx="5" fill="#4ecdc4"/>
+                    <text x="400" y="340" text-anchor="middle" fill="white" font-size="12">📍 Step 2: Route53 DNS</text>
+                    <text x="400" y="358" text-anchor="middle" fill="white" font-size="10">list_hosted_zones, list_records</text>
+                    
+                    <!-- Decision: CloudFront? -->
+                    <line x1="400" y1="370" x2="400" y2="400" stroke="#ff9900" stroke-width="2" marker-end="url(#arrowhead)"/>
+                    <polygon points="400,410 470,440 400,470 330,440" fill="#fff3cd" stroke="#ff9900" stroke-width="2"/>
+                    <text x="400" y="445" text-anchor="middle" font-size="10">CloudFront?</text>
+                    
+                    <!-- Yes to CloudFront -->
+                    <line x1="470" y1="440" x2="550" y2="440" stroke="#ff9900" stroke-width="2"/>
+                    <text x="510" y="430" font-size="10" fill="#1e8900">Yes</text>
+                    <rect x="550" y="415" width="150" height="50" rx="5" fill="#45b7d1"/>
+                    <text x="625" y="435" text-anchor="middle" fill="white" font-size="11">☁️ Step 3: CloudFront</text>
+                    <text x="625" y="453" text-anchor="middle" fill="white" font-size="9">get_distribution</text>
+                    <line x1="625" y1="465" x2="625" y2="490" stroke="#ff9900" stroke-width="2"/>
+                    <line x1="625" y1="490" x2="400" y2="490" stroke="#ff9900" stroke-width="2" marker-end="url(#arrowhead)"/>
+                    
+                    <!-- No to ALB decision -->
+                    <line x1="400" y1="470" x2="400" y2="500" stroke="#ff9900" stroke-width="2" marker-end="url(#arrowhead)"/>
+                    <text x="415" y="485" font-size="10" fill="#d13212">No</text>
+                    
+                    <!-- ALB/NLB -->
+                    <rect x="300" y="510" width="200" height="50" rx="5" fill="#96ceb4"/>
+                    <text x="400" y="530" text-anchor="middle" fill="#16191f" font-size="12">⚖️ Step 4: ALB/NLB</text>
+                    <text x="400" y="548" text-anchor="middle" fill="#16191f" font-size="10">describe_load_balancers</text>
+                    
+                    <!-- End -->
+                    <line x1="400" y1="560" x2="400" y2="580" stroke="#ff9900" stroke-width="2" marker-end="url(#arrowhead)"/>
+                    <ellipse cx="400" cy="595" rx="60" ry="20" fill="#1e8900"/>
+                    <text x="400" y="600" text-anchor="middle" fill="white" font-size="12">Complete</text>
+                    
+                    <!-- Arrow marker definition -->
+                    <defs>
+                        <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="#ff9900"/>
+                        </marker>
+                    </defs>
+                </svg>
+            </div>
+        </section>
+
+        <!-- Tools Section -->
+        <section id="tools">
+            <h2>🛠️ Available Tools</h2>
+            
+            <h3>Primary Tool - AWS CLI (Universal)</h3>
+            <div class="tool-card" style="border-left: 4px solid var(--secondary);">
+                <h4><span class="icon">⚡</span> execute_aws_cli_command</h4>
+                <p><strong>The PRIMARY tool for ALL AWS queries.</strong> Execute any AWS CLI command dynamically.</p>
+                <p><span class="badge badge-primary">PRIMARY</span> <span class="badge badge-info">Universal</span></p>
+                <div class="example-box">
+                    <strong>Input Format:</strong>
+                    <pre>{"service": "elbv2", "operation": "describe_load_balancers", "parameters": {"Names": ["my-alb"]}}</pre>
+                    <p style="margin-top: 10px;"><strong>Supported Services:</strong> elbv2, ec2, rds, s3, lambda, dynamodb, route53, ecs, eks, cloudfront, and more</p>
+                    <p><strong>Security:</strong> Only read-only operations allowed (describe_*, list_*, get_*)</p>
+                </div>
+            </div>
+            
+            <h3>F5 WAF Tools</h3>
+            <div class="alert alert-danger">
+                <strong>⚠️ CRITICAL:</strong> F5 tools MUST be called FIRST when tracing any domain (except internal.example.com)
+            </div>
+            
+            <div class="tool-card" style="border-left: 4px solid #ff6b6b;">
+                <h4><span class="icon">🛡️</span> query_f5_load_balancer</h4>
+                <p>Query F5 load balancer configuration by FQDN (domain name).</p>
+                <p><span class="badge badge-danger">MANDATORY FIRST</span></p>
+                <div class="example-box">
+                    <strong>Input:</strong> <code>fqdn</code> (e.g., "demo.example.com")<br>
+                    <strong>Returns:</strong> Load balancer details, domains, certificate expiry, origin pools, routes
+                </div>
+            </div>
+            
+            <div class="tool-card" style="border-left: 4px solid #ff6b6b;">
+                <h4><span class="icon">🔗</span> query_f5_origin_pool</h4>
+                <p>Query F5 origin pool to get backend server details. <strong>MUST be called after query_f5_load_balancer.</strong></p>
+                <p><span class="badge badge-danger">MANDATORY</span></p>
+                <div class="example-box">
+                    <strong>Input:</strong>
+                    <pre>{"pool_name": "grp-api-dev-appcontrol-443", "namespace": "acme-net"}</pre>
+                    <strong>Returns:</strong> Origin servers (IPs/DNS), port, health check config, load balancing algorithm
+                </div>
+            </div>
+            
+            <div class="tool-card" style="border-left: 4px solid #ff6b6b;">
+                <h4><span class="icon">📋</span> query_f5_load_balancer_by_name</h4>
+                <p>Query F5 load balancer by its name (when you know the LB name).</p>
+                <div class="example-box">
+                    <strong>Input:</strong>
+                    <pre>{"lb_name": "grp-api-dev-appcontrol", "namespace": "acme-net"}</pre>
+                </div>
+            </div>
+            
+            <div class="tool-card" style="border-left: 4px solid #ff6b6b;">
+                <h4><span class="icon">📑</span> list_f5_load_balancers / list_f5_namespaces</h4>
+                <p>List all F5 load balancers in a namespace or list all available namespaces.</p>
+            </div>
+            
+            <h3>DNS Tools (Route53)</h3>
+            <div class="tool-card" style="border-left: 4px solid #4ecdc4;">
+                <h4><span class="icon">📍</span> query_route53_records</h4>
+                <p>Query DNS records for an FQDN. Returns hosted zone info and all matching records.</p>
+                <p><span class="badge badge-info">Fallback</span> Prefer execute_aws_cli_command first</p>
+                <div class="example-box">
+                    <strong>Input:</strong> <code>fqdn</code> (e.g., "internal.example.com")
+                </div>
+            </div>
+            
+            <div class="tool-card" style="border-left: 4px solid #4ecdc4;">
+                <h4><span class="icon">🗂️</span> list_route53_hosted_zones / list_route53_hosted_zone_records</h4>
+                <p>List hosted zones or DNS records with optional filters.</p>
+                <div class="example-box">
+                    <strong>Input:</strong>
+                    <pre>{"hosted_zone_id": "/hostedzone/Z123ABC", "name_contains": "api"}</pre>
+                </div>
+            </div>
+            
+            <h3>CDN Tools (CloudFront)</h3>
+            <div class="tool-card" style="border-left: 4px solid #45b7d1;">
+                <h4><span class="icon">☁️</span> query_cloudfront_distribution</h4>
+                <p>Get CloudFront distribution details by ID or domain name.</p>
+                <p><span class="badge badge-info">Fallback</span> Prefer execute_aws_cli_command first</p>
+                <div class="example-box">
+                    <strong>Input:</strong>
+                    <pre>{"domain_name": "demo.example.com"}</pre>
+                    <strong>or</strong>
+                    <pre>{"distribution_id": "E123ABC"}</pre>
+                </div>
+            </div>
+            
+            <h3>Load Balancer Tools (ALB/NLB)</h3>
+            <div class="tool-card" style="border-left: 4px solid #96ceb4;">
+                <h4><span class="icon">⚖️</span> query_load_balancer</h4>
+                <p>Query ALB/NLB details including target groups and health status.</p>
+                <div class="example-box">
+                    <strong>Input:</strong>
+                    <pre>{"dns_name": "my-alb.ap-southeast-1.elb.amazonaws.com"}</pre>
+                </div>
+            </div>
+            
+            <div class="tool-card" style="border-left: 4px solid #96ceb4;">
+                <h4><span class="icon">📜</span> describe_load_balancer_listeners</h4>
+                <p>Get ALB/NLB listeners, rules, conditions, and target group IPs.</p>
+                <div class="example-box">
+                    <strong>Returns:</strong> Listener ports, routing rules (host/path conditions), target groups with target IPs
+                </div>
+            </div>
+            
+            <h3>Log Analysis Tools</h3>
+            <div class="tool-card" style="border-left: 4px solid #9b59b6;">
+                <h4><span class="icon">📊</span> query_vpc_flow_logs</h4>
+                <p>Query VPC Flow Logs from Athena for network traffic analysis.</p>
+                <div class="example-box">
+                    <strong>Input:</strong>
+                    <pre>{"source_ip": "10.0.1.100", "destination_ip": "10.0.2.200"}</pre>
+                </div>
+            </div>
+            
+            <div class="tool-card" style="border-left: 4px solid #9b59b6;">
+                <h4><span class="icon">📈</span> query_cloudfront_logs</h4>
+                <p>Query CloudFront access logs from Athena.</p>
+                <div class="example-box">
+                    <strong>Input:</strong>
+                    <pre>{"distribution_id": "E123ABC", "start_date": "2026-01-20", "end_date": "2026-01-22"}</pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- Examples Section -->
+        <section id="examples">
+            <h2>💡 Query Examples</h2>
+            <p>Here are example queries you can use with the AWS Operations Agent:</p>
+            
+            <div class="query-examples">
+                <div class="query-category">
+                    <h4>🔍 FQDN Tracing</h4>
+                    <ul>
+                        <li>"Trace demo.example.com end-to-end"</li>
+                        <li>"Show me the full path for api.example.com"</li>
+                        <li>"What's the complete infrastructure flow behind internal.example.com?"</li>
+                        <li>"Trace the request flow for vision-uat.example.com"</li>
+                    </ul>
+                </div>
+                
+                <div class="query-category">
+                    <h4>📍 DNS Queries</h4>
+                    <ul>
+                        <li>"List all Route53 hosted zones"</li>
+                        <li>"Show me all DNS records in hosted zone Z123ABC"</li>
+                        <li>"What DNS records exist for demo.example.com?"</li>
+                        <li>"List all A records in the example.com hosted zone"</li>
+                    </ul>
+                </div>
+                
+                <div class="query-category">
+                    <h4>🛡️ F5 WAF Queries</h4>
+                    <ul>
+                        <li>"Query F5 load balancer for app-control-dev01.example.com"</li>
+                        <li>"Show me origin pool grp-api-dev-appcontrol-443 backend servers"</li>
+                        <li>"List all F5 load balancers in acme-net namespace"</li>
+                        <li>"Check certificate expiry for demo.example.com"</li>
+                    </ul>
+                </div>
+                
+                <div class="query-category">
+                    <h4>⚖️ ALB/NLB Queries</h4>
+                    <ul>
+                        <li>"Show me ALB my-alb basic information"</li>
+                        <li>"List all listeners for load balancer my-alb"</li>
+                        <li>"What are the routing rules for my-alb?"</li>
+                        <li>"Check target health for target group my-targets"</li>
+                    </ul>
+                </div>
+                
+                <div class="query-category">
+                    <h4>☁️ CloudFront Queries</h4>
+                    <ul>
+                        <li>"List all CloudFront distributions"</li>
+                        <li>"Show me CloudFront distribution E123ABC details"</li>
+                        <li>"What are the origins for distribution E123ABC?"</li>
+                        <li>"Show distributions with alias demo.example.com"</li>
+                    </ul>
+                </div>
+                
+                <div class="query-category">
+                    <h4>📊 Log Analysis</h4>
+                    <ul>
+                        <li>"Query VPC flow logs for IP 10.0.1.100"</li>
+                        <li>"Check CloudFront logs for errors in the last day"</li>
+                        <li>"Show traffic between 10.0.1.100 and 10.0.2.200"</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Best Practices Section -->
+        <section id="best-practices">
+            <h2>✅ Best Practices</h2>
+            
+            <h3>Tool Selection Strategy</h3>
+            <table>
+                <tr>
+                    <th>Scenario</th>
+                    <th>Recommended Tool</th>
+                </tr>
+                <tr>
+                    <td>Any AWS service query</td>
+                    <td><code>execute_aws_cli_command</code> (PRIMARY)</td>
+                </tr>
+                <tr>
+                    <td>F5 WAF / Distributed Cloud</td>
+                    <td><code>query_f5_load_balancer</code> → <code>query_f5_origin_pool</code></td>
+                </tr>
+                <tr>
+                    <td>FQDN-based DNS lookup</td>
+                    <td><code>query_route53_records</code> (if AWS CLI insufficient)</td>
+                </tr>
+                <tr>
+                    <td>Domain-based CloudFront lookup</td>
+                    <td><code>query_cloudfront_distribution</code> (if AWS CLI insufficient)</td>
+                </tr>
+                <tr>
+                    <td>Network traffic analysis</td>
+                    <td><code>query_vpc_flow_logs</code></td>
+                </tr>
+            </table>
+            
+            <h3>Common Mistakes to Avoid</h3>
+            <div class="alert alert-warning">
+                <strong>❌ Don't:</strong>
+                <ul style="margin-top: 10px;">
+                    <li>Skip F5 check when tracing domains (except internal.example.com)</li>
+                    <li>Rely on origin pool info from query_f5_load_balancer alone</li>
+                    <li>Mix information from different FQDNs</li>
+                    <li>Assume information without calling tools</li>
+                    <li>Skip query_f5_origin_pool after finding F5 load balancer</li>
+                </ul>
+            </div>
+            
+            <div class="alert alert-info">
+                <strong>✅ Do:</strong>
+                <ul style="margin-top: 10px;">
+                    <li>Always start with F5 check for non-internal.example.com domains</li>
+                    <li>Always call query_f5_origin_pool for complete backend details</li>
+                    <li>Use execute_aws_cli_command as your primary AWS query tool</li>
+                    <li>Include origin server details (type, IP/DNS, port) in every F5 response</li>
+                    <li>Follow the workflow order: F5 → Route53 → CloudFront → ALB</li>
+                </ul>
+            </div>
+            
+            <h3>Response Format Example</h3>
+            <div class="example-box">
+                <pre>
+🛡️ F5 WAF/Load Balancer (First Layer)
+- Load Balancer: grp-api-uat-dgtvsion
+- Domains: vision-uat.example.com
+- Certificate Expiry: 2026-05-25 (116 days)
+- Origin Pool: grp-api-uat-dgtvsion-443
+- Origin Servers:
+  - Type: public_name
+  - DNS Name: vsion-uat-cf.apse1.dgt.np-api.example.com
+  - Port: 443
+
+📍 DNS Resolution (Route53)
+- FQDN: vsion-uat-cf.apse1.dgt.np-api.example.com
+- Hosted Zone: dgt.np-api.example.com (Z123ABC)
+- Record Type: ALIAS → d123abc.cloudfront.net
+
+☁️ CloudFront Distribution
+- Distribution ID: E123ABC
+- Aliases: vsion-uat-cf.apse1.dgt.np-api.example.com
+- Origin: my-alb-123.us-east-1.elb.amazonaws.com
+
+⚖️ Load Balancer (ALB)
+- Name: my-alb
+- DNS: my-alb-123.us-east-1.elb.amazonaws.com
+- Listeners: Port 443 (HTTPS)
+
+🎯 Target Groups
+- target-group-web: 2/3 healthy targets
+
+📊 Complete Flow:
+vision-uat.example.com → F5 WAF → CloudFront → ALB → EC2 Instances
+                </pre>
+            </div>
+        </section>
+    </div>
+    
+    <footer>
+        <p>AWS Operations Agent - User Guide</p>
+        <p style="opacity: 0.7; margin-top: 10px;">Built for DevOps Engineers | Version 1.0</p>
+    </footer>
+</body>
+</html>

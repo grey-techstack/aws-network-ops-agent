@@ -1,0 +1,259 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'AWS Operations Agent - Lambda Only (No API Gateway)'
+
+Parameters:
+  ProjectName:
+    Type: String
+    Default: aws-ops-agent
+    
+  Environment:
+    Type: String
+    Default: dev
+    
+  CrossAccountRoleName:
+    Type: String
+    Default: aws-ops-agent-cross-account-role
+    Description: Name of the cross-account role in target accounts
+  
+  CoreNetworkAccountId:
+    Type: String
+    AllowedPattern: '[0-9]{12}'
+  
+  WorkloadAccountIds:
+    Type: CommaDelimitedList
+  
+  F5SecretName:
+    Type: String
+    Default: f5-distributed-cloud-api-credentials
+  
+  F5ApiUrl:
+    Type: String
+    NoEcho: true
+  
+  F5ApiToken:
+    Type: String
+    NoEcho: true
+  
+  F5Namespace:
+    Type: String
+    Default: system
+  
+  LambdaTimeout:
+    Type: Number
+    Default: 300
+  
+  LambdaMemorySize:
+    Type: Number
+    Default: 512
+  
+  AthenaDatabase:
+    Type: String
+    Default: centralized_logging
+  
+  AthenaOutputBucket:
+    Type: String
+  
+  LambdaHandler:
+    Type: String
+    Default: src.lambda_handler.lambda_handler
+    Description: Lambda function handler (use src.lambda_handler.lambda_handler for full agent)
+
+Resources:
+  # S3 Bucket for Athena Results
+  AthenaResultsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref AthenaOutputBucket
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      LifecycleConfiguration:
+        Rules:
+          - Id: DeleteOldQueryResults
+            Status: Enabled
+            ExpirationInDays: 7
+
+  # Lambda Execution Role
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${ProjectName}-execution-role-${Environment}'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/ReadOnlyAccess
+      Policies:
+        - PolicyName: !Sub '${ProjectName}-policy'
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Sid: CloudWatchLogs
+                Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${ProjectName}-${Environment}:*'
+              
+              - Sid: AssumeSSORoles
+                Effect: Allow
+                Action: sts:AssumeRole
+                Resource:
+                  - !Sub 'arn:aws:iam::${CoreNetworkAccountId}:role/${CrossAccountRoleName}'
+                  - !Sub 'arn:aws:iam::*:role/${CrossAccountRoleName}'
+              
+              - Sid: SecretsManagerAccess
+                Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                Resource: !Sub 'arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${F5SecretName}-*'
+              
+              - Sid: BedrockAccess
+                Effect: Allow
+                Action:
+                  - bedrock:InvokeModel
+                  - bedrock:Converse
+                Resource: '*'
+              
+              - Sid: Route53ReadAccess
+                Effect: Allow
+                Action:
+                  - route53:ListHostedZones
+                  - route53:ListResourceRecordSets
+                  - route53:GetHostedZone
+                Resource: '*'
+              
+              - Sid: CloudFrontReadAccess
+                Effect: Allow
+                Action:
+                  - cloudfront:ListDistributions
+                  - cloudfront:GetDistribution
+                  - cloudfront:GetDistributionConfig
+                Resource: '*'
+              
+              - Sid: ELBReadAccess
+                Effect: Allow
+                Action:
+                  - elasticloadbalancing:DescribeLoadBalancers
+                  - elasticloadbalancing:DescribeTargetGroups
+                  - elasticloadbalancing:DescribeTargetHealth
+                  - elasticloadbalancing:DescribeListeners
+                  - elasticloadbalancing:DescribeRules
+                Resource: '*'
+              
+              - Sid: AthenaAccess
+                Effect: Allow
+                Action:
+                  - athena:StartQueryExecution
+                  - athena:GetQueryExecution
+                  - athena:GetQueryResults
+                  - athena:StopQueryExecution
+                  - athena:GetWorkGroup
+                Resource: '*'
+              
+              - Sid: GlueReadAccess
+                Effect: Allow
+                Action:
+                  - glue:GetDatabase
+                  - glue:GetTable
+                  - glue:GetPartitions
+                Resource: '*'
+              
+              - Sid: S3AthenaAccess
+                Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:ListBucket
+                  - s3:GetBucketLocation
+                  - s3:PutObject
+                Resource:
+                  - !Sub '${AthenaResultsBucket.Arn}'
+                  - !Sub '${AthenaResultsBucket.Arn}/*'
+              
+              - Sid: EC2ReadAccess
+                Effect: Allow
+                Action:
+                  - ec2:DescribeInstances
+                  - ec2:DescribeNetworkInterfaces
+                  - ec2:DescribeVpcs
+                  - ec2:DescribeSubnets
+                  - ec2:DescribeSecurityGroups
+                Resource: '*'
+
+  # F5 API Credentials Secret
+  F5ApiCredentialsSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name: !Ref F5SecretName
+      SecretString: !Sub |
+        {
+          "api_url": "${F5ApiUrl}",
+          "api_token": "${F5ApiToken}",
+          "namespace": "${F5Namespace}"
+        }
+
+  # Lambda Layer
+  LambdaLayer:
+    Type: AWS::Lambda::LayerVersion
+    Properties:
+      LayerName: !Sub '${ProjectName}-dependencies-${Environment}'
+      Content:
+        S3Bucket: !Sub '${ProjectName}-deployment-${AWS::AccountId}-${AWS::Region}'
+        S3Key: lambda-layer.zip
+      CompatibleRuntimes:
+        - python3.11
+
+  # Lambda Function
+  LambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-${Environment}'
+      Runtime: python3.11
+      Handler: !Ref LambdaHandler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Timeout: !Ref LambdaTimeout
+      MemorySize: !Ref LambdaMemorySize
+      Layers:
+        - !Ref LambdaLayer
+      Code:
+        S3Bucket: !Sub '${ProjectName}-deployment-${AWS::AccountId}-${AWS::Region}'
+        S3Key: aws-ops-agent-function.zip
+      Environment:
+        Variables:
+          CROSS_ACCOUNT_ROLE_NAME: !Ref CrossAccountRoleName
+          F5_SECRET_NAME: !Ref F5SecretName
+          CORE_NETWORK_ACCOUNT_ID: !Ref CoreNetworkAccountId
+          WORKLOAD_ACCOUNT_IDS: !Join [',', !Ref WorkloadAccountIds]
+          ATHENA_DATABASE: !Ref AthenaDatabase
+          ATHENA_OUTPUT_BUCKET: !Ref AthenaResultsBucket
+          LOG_LEVEL: INFO
+
+  # CloudWatch Log Group
+  LambdaLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${ProjectName}-${Environment}'
+      RetentionInDays: 7
+
+Outputs:
+  LambdaFunctionArn:
+    Value: !GetAtt LambdaFunction.Arn
+  
+  LambdaFunctionName:
+    Value: !Ref LambdaFunction
+  
+  TestCommand:
+    Description: Command to test Lambda directly
+    Value: !Sub 'aws lambda invoke --function-name ${LambdaFunction} --payload ''{"query": "test"}'' response.json'

@@ -1,0 +1,18 @@
+# Core AWS and AI dependencies
+boto3>=1.35.0
+langchain>=0.3.0
+langchain-aws>=0.2.0
+langchain-community>=0.3.0
+langchain-core>=0.3.0
+langgraph>=0.2.0
+pydantic>=2.5.0
+
+# Testing dependencies
+pytest>=7.4.0
+hypothesis>=6.92.0
+pytest-cov>=4.1.0
+moto>=4.2.0
+
+# Utility dependencies
+python-dateutil>=2.8.2
+requests>=2.31.0

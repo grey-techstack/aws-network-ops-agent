@@ -1,0 +1,55 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Cross-Account Role for AWS Ops Agent - Deploy in Network Account (234567890123)'
+
+Parameters:
+  DevAccountId:
+    Type: String
+    Default: '123456789012'
+    Description: Dev Account ID that can assume this role
+    AllowedPattern: '[0-9]{12}'
+  
+  ProdAccountId:
+    Type: String
+    Default: '345678901234'
+    Description: Cloudops PROD Account ID that can assume this role
+    AllowedPattern: '[0-9]{12}'
+  
+  RoleName:
+    Type: String
+    Default: aws-ops-agent-cross-account-role
+    Description: Name of the cross-account role
+
+Resources:
+  CrossAccountRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Ref RoleName
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS:
+                - !Sub 'arn:aws:iam::${DevAccountId}:root'
+                - !Sub 'arn:aws:iam::${ProdAccountId}:root'
+            Action: sts:AssumeRole
+            Condition:
+              StringEquals:
+                sts:ExternalId: aws-ops-agent
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/ReadOnlyAccess
+
+Outputs:
+  CrossAccountRoleArn:
+    Description: ARN of the cross-account role
+    Value: !GetAtt CrossAccountRole.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-RoleArn'
+  
+  TrustedAccounts:
+    Description: Accounts that can assume this role
+    Value: !Sub '${DevAccountId}, ${ProdAccountId}'
+  
+  AssumeRoleCommand:
+    Description: Command to test assume role
+    Value: !Sub 'aws sts assume-role --role-arn ${CrossAccountRole.Arn} --role-session-name test --external-id aws-ops-agent'

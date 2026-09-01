@@ -1,0 +1,226 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'IAM roles and policies for AWS Operations Agent'
+
+Parameters:
+  GlobalReaderRoleName:
+    Type: String
+    Default: GlobalReaderRole
+    Description: Name of the SSO Global Reader Role
+  
+  F5SecretName:
+    Type: String
+    Default: f5-distributed-cloud-api-credentials
+    Description: Name of the F5 API credentials secret in Secrets Manager
+  
+  CoreNetworkAccountId:
+    Type: String
+    Description: AWS Account ID for Core Network resources
+    AllowedPattern: '[0-9]{12}'
+  
+  WorkloadAccountIds:
+    Type: CommaDelimitedList
+    Description: Comma-separated list of Workload Account IDs
+
+Resources:
+  # Lambda Execution Role
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: aws-ops-agent-execution-role
+      Description: Execution role for AWS Operations Agent Lambda function
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: aws-ops-agent-policy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              # CloudWatch Logs
+              - Sid: CloudWatchLogs
+                Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/aws-ops-agent:*'
+              
+              # STS AssumeRole for SSO Global Reader
+              - Sid: AssumeSSORoles
+                Effect: Allow
+                Action: sts:AssumeRole
+                Resource:
+                  - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${GlobalReaderRoleName}'
+                  - !Sub 'arn:aws:iam::${CoreNetworkAccountId}:role/${GlobalReaderRoleName}'
+                  - !Sub 'arn:aws:iam::*:role/${GlobalReaderRoleName}'
+              
+              # Secrets Manager Access
+              - Sid: SecretsManagerAccess
+                Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                Resource: !Sub 'arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${F5SecretName}-*'
+              
+              # Amazon Bedrock Access (Nova 2 Lite cross-region inference + Claude fallback)
+              - Sid: BedrockAccess
+                Effect: Allow
+                Action:
+                  - bedrock:InvokeModel
+                  - bedrock:InvokeModelWithResponseStream
+                Resource:
+                  - 'arn:aws:bedrock:*:*:inference-profile/us.amazon.nova-*'
+                  - 'arn:aws:bedrock:*::foundation-model/amazon.nova-*'
+                  - 'arn:aws:bedrock:*::foundation-model/anthropic.claude-*'
+      Tags:
+        - Key: Application
+          Value: aws-ops-agent
+        - Key: ManagedBy
+          Value: CloudFormation
+
+  # SSO Global Reader Role (to be assumed by Lambda)
+  # Note: This is a template - actual SSO roles are typically managed by AWS SSO
+  # This is provided as a reference for required permissions
+  GlobalReaderRoleTemplate:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Ref GlobalReaderRoleName
+      Description: Global reader role for AWS Operations Agent (SSO-managed)
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          # Allow Lambda execution role to assume this role
+          - Effect: Allow
+            Principal:
+              AWS: !GetAtt LambdaExecutionRole.Arn
+            Action: sts:AssumeRole
+          # Allow cross-account assumption
+          - Effect: Allow
+            Principal:
+              AWS:
+                - !Sub 'arn:aws:iam::${CoreNetworkAccountId}:root'
+            Action: sts:AssumeRole
+            Condition:
+              StringEquals:
+                sts:ExternalId: aws-ops-agent
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/ReadOnlyAccess
+      Policies:
+        - PolicyName: aws-ops-agent-reader-policy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              # Route53 Read Access
+              - Sid: Route53ReadAccess
+                Effect: Allow
+                Action:
+                  - route53:GetHostedZone
+                  - route53:ListHostedZones
+                  - route53:ListResourceRecordSets
+                  - route53:GetChange
+                Resource: '*'
+              
+              # CloudFront Read Access
+              - Sid: CloudFrontReadAccess
+                Effect: Allow
+                Action:
+                  - cloudfront:GetDistribution
+                  - cloudfront:GetDistributionConfig
+                  - cloudfront:ListDistributions
+                  - cloudfront:ListDistributionsByWebACLId
+                Resource: '*'
+              
+              # ELB Read Access
+              - Sid: ELBReadAccess
+                Effect: Allow
+                Action:
+                  - elasticloadbalancing:DescribeLoadBalancers
+                  - elasticloadbalancing:DescribeTargetGroups
+                  - elasticloadbalancing:DescribeTargetHealth
+                  - elasticloadbalancing:DescribeListeners
+                  - elasticloadbalancing:DescribeRules
+                  - elasticloadbalancing:DescribeTags
+                Resource: '*'
+              
+              # Athena Read Access
+              - Sid: AthenaReadAccess
+                Effect: Allow
+                Action:
+                  - athena:GetQueryExecution
+                  - athena:GetQueryResults
+                  - athena:StartQueryExecution
+                  - athena:StopQueryExecution
+                  - athena:GetWorkGroup
+                  - athena:ListWorkGroups
+                  - athena:GetDataCatalog
+                  - athena:GetDatabase
+                  - athena:GetTableMetadata
+                  - athena:ListDatabases
+                  - athena:ListTableMetadata
+                Resource: '*'
+              
+              # S3 Access for Athena Results
+              - Sid: S3AthenaAccess
+                Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                  - s3:ListBucket
+                  - s3:GetBucketLocation
+                Resource:
+                  - !Sub 'arn:aws:s3:::aws-ops-agent-athena-results-${AWS::AccountId}-${AWS::Region}'
+                  - !Sub 'arn:aws:s3:::aws-ops-agent-athena-results-${AWS::AccountId}-${AWS::Region}/*'
+              
+              # EC2 Read Access (for IP lookups)
+              - Sid: EC2ReadAccess
+                Effect: Allow
+                Action:
+                  - ec2:DescribeInstances
+                  - ec2:DescribeNetworkInterfaces
+                  - ec2:DescribeAddresses
+                  - ec2:DescribeVpcs
+                  - ec2:DescribeSubnets
+                  - ec2:DescribeSecurityGroups
+                  - ec2:DescribePrefixLists
+                Resource: '*'
+              
+              # Glue Data Catalog Access (for Athena)
+              - Sid: GlueDataCatalogAccess
+                Effect: Allow
+                Action:
+                  - glue:GetDatabase
+                  - glue:GetDatabases
+                  - glue:GetTable
+                  - glue:GetTables
+                  - glue:GetPartition
+                  - glue:GetPartitions
+                Resource: '*'
+      Tags:
+        - Key: Application
+          Value: aws-ops-agent
+        - Key: ManagedBy
+          Value: CloudFormation
+
+Outputs:
+  LambdaExecutionRoleArn:
+    Description: ARN of the Lambda execution role
+    Value: !GetAtt LambdaExecutionRole.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-LambdaExecutionRoleArn'
+  
+  GlobalReaderRoleArn:
+    Description: ARN of the Global Reader role
+    Value: !GetAtt GlobalReaderRoleTemplate.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-GlobalReaderRoleArn'
+  
+  LambdaExecutionRoleName:
+    Description: Name of the Lambda execution role
+    Value: !Ref LambdaExecutionRole
+    Export:
+      Name: !Sub '${AWS::StackName}-LambdaExecutionRoleName'

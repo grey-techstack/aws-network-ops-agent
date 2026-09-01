@@ -1,0 +1,62 @@
+[
+  {
+    "ParameterKey": "ProjectName",
+    "ParameterValue": "aws-ops-agent"
+  },
+  {
+    "ParameterKey": "Environment",
+    "ParameterValue": "dev"
+  },
+  {
+    "ParameterKey": "GlobalReaderRoleName",
+    "ParameterValue": "GlobalReaderRole"
+  },
+  {
+    "ParameterKey": "CoreNetworkAccountId",
+    "ParameterValue": "123456789012"
+  },
+  {
+    "ParameterKey": "WorkloadAccountIds",
+    "ParameterValue": "123456789012"
+  },
+  {
+    "ParameterKey": "F5SecretName",
+    "ParameterValue": "f5-distributed-cloud-api-credentials"
+  },
+  {
+    "ParameterKey": "F5ApiUrl",
+    "ParameterValue": "https://example.console.example.io/api"
+  },
+  {
+    "ParameterKey": "F5ApiToken",
+    "ParameterValue": "YOUR_F5_API_TOKEN_HERE"
+  },
+  {
+    "ParameterKey": "F5Namespace",
+    "ParameterValue": "acme-net"
+  },
+  {
+    "ParameterKey": "LambdaTimeout",
+    "ParameterValue": "300"
+  },
+  {
+    "ParameterKey": "LambdaMemorySize",
+    "ParameterValue": "512"
+  },
+  {
+    "ParameterKey": "AthenaDatabase",
+    "ParameterValue": "centralized_logging"
+  },
+  {
+    "ParameterKey": "AthenaOutputBucket",
+    "ParameterValue": "aws-ops-agent-athena-results-123456789012-ap-southeast-1"
+  },
+  {
+    "ParameterKey": "ApiStageName",
+    "ParameterValue": "dev"
+  },
+  {
+    "ParameterKey": "EnableApiKey",
+    "ParameterValue": "true"
+  }
+]
