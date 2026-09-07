@@ -27,18 +27,19 @@ Ask *"trace the DNS path for `app.example.com`"* or *"why is `203.0.113.20` unre
 
 ## Example
 
-Ask in a Teams channel and the agent walks the whole path, reporting what it found at each hop:
+Ask in a Teams channel and the agent traces the path hop by hop — starting at the WAF and DNS:
 
-![Tracing an FQDN from edge to origin, in Microsoft Teams](docs/img/example-trace.png)
+![Edge and DNS resolution](docs/img/teams-trace-1.jpg)
 
-Or investigate an IP — `@AWSBot what is 203.0.113.9?`:
+…then the load balancer, target health, and the end-to-end flow it reconstructed:
 
-```text
-AWS Elastic IP        not found
-corporate allowlist   match 203.0.113.0/24   (SASE / secure web-gateway egress)
-geolocation           SASE vendor · AS·····  · edge PoP
-AWS IP range          not found
-```
+![ALB, target groups and the complete flow](docs/img/teams-trace-2.jpg)
+
+It also investigates an IP — matching it against your corporate egress allowlist and geolocating it:
+
+![IP investigation](docs/img/teams-ip-lookup.jpg)
+
+<sub>Real output from a live deployment. Hostnames, IPs, account and resource names have been replaced with documentation-range examples.</sub>
 
 ## Architecture
 
