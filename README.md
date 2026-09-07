@@ -27,33 +27,9 @@ Ask *"trace the DNS path for `app.example.com`"* or *"why is `203.0.113.20` unre
 
 ## Example
 
-Ask in a Teams channel — `@AWSBot trace app-uat.example.com` — and the agent walks the whole path and reports what it found:
+Ask in a Teams channel and the agent walks the whole path, reporting what it found at each hop:
 
-```text
-F5 WAF / load balancer (edge)
-  load balancer   lb-app-uat
-  domains         app-uat.example.com
-  cert expiry     2026-09-08  (131 days)
-  origin pool     pool-app-uat
-  origin server   app-uat-alb.apse1.api.example.com:443   (public_name)
-
-DNS resolution (Route 53)
-  fqdn            app-uat-alb.apse1.api.example.com
-  hosted zone     api.example.com   (/hostedzone/Z0123456789ABCD)
-  record          ALIAS → dualstack.alb-app-apse1-01.ap-southeast-1.elb.amazonaws.com
-
-CloudFront        not applicable
-
-Load balancer (ALB / NLB)
-  name            alb-app-apse1-01
-  listener        HTTPS :443   (host header: app-uat.example.com)
-  target group    tg-app-uat-apse1-80 — healthy 2/2
-  targets         10.0.0.11:80 (healthy) · 10.0.0.12:80 (healthy)
-
-✔ complete flow
-  app-uat.example.com → F5 WAF → Origin Pool → Route 53 → ALB → Target Group → EC2
-  elapsed 22.4s
-```
+![Tracing an FQDN from edge to origin, in Microsoft Teams](docs/img/example-trace.png)
 
 Or investigate an IP — `@AWSBot what is 203.0.113.9?`:
 
