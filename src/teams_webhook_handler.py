@@ -98,7 +98,7 @@ def parse_teams_webhook_event(event: Dict[str, Any]) -> Dict[str, Any]:
     Teams sends a payload like:
     {
         "type": "message",
-        "text": "<at>AWSBot</at> 查詢 n8n 的 DNS",
+        "text": "<at>AWSBot</at> 查詢 myapp 的 DNS",
         "from": {"name": "User Name", "id": "..."},
         "conversation": {"id": "..."},
         "recipient": {"name": "AWSBot"},

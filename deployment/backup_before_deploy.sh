@@ -226,7 +226,7 @@ After restore, test the function:
 aws lambda invoke \\
   --function-name $FUNCTION_NAME \\
   --cli-binary-format raw-in-base64-out \\
-  --payload '{"query": "查詢 n8n 的 DNS"}' \\
+  --payload '{"query": "查詢 myapp 的 DNS"}' \\
   response.json
 
 cat response.json

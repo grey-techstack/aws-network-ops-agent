@@ -10,7 +10,7 @@
 
 ## 💡 解決方案：通用 AWS CLI Tool
 
-類似 n8n workflow 的 CLI Tool，給 AI Agent 一個通用的 AWS CLI 執行工具，讓它根據需求自己構建命令。
+類似 workflow automation 的 CLI Tool，給 AI Agent 一個通用的 AWS CLI 執行工具，讓它根據需求自己構建命令。
 
 ## 🏗️ 架構設計
 

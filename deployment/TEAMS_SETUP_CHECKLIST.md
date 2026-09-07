@@ -124,12 +124,12 @@ Security Token: _______________________________________________
 
 - [ ] DNS 查詢
   ```
-  @AWSBot 查詢 n8n 的 DNS
+  @AWSBot 查詢 myapp 的 DNS
   ```
 
 - [ ] ALB 狀態
   ```
-  @AWSBot 檢查 alb-core-net 的健康狀態
+  @AWSBot 檢查 alb-app 的健康狀態
   ```
 
 - [ ] IP 調查

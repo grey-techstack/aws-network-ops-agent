@@ -6,7 +6,7 @@
 
 ```
 Teams Channel
-    ↓ (1) 用戶: @AWSBot 查詢 n8n 的 DNS
+    ↓ (1) 用戶: @AWSBot 查詢 myapp 的 DNS
     ↓
 Outgoing Webhook → API Gateway → Lambda
     ↓ (2) 立即返回: "🔄 處理中..."
@@ -16,7 +16,7 @@ Outgoing Webhook → API Gateway → Lambda
     ↓ (4) 完成後發送結果
     ↓
 Incoming Webhook → Teams Channel
-    ↓ (5) 顯示: "📍 DNS: n8n-dgt-dev..."
+    ↓ (5) 顯示: "📍 DNS: myapp-dev..."
 ```
 
 ## 為什麼需要兩個 Webhook？
@@ -148,7 +148,7 @@ https://xxxxxxxxxx.execute-api.ap-southeast-1.amazonaws.com/prod/query
 在 Teams Channel 中測試：
 
 ```
-@AWSBot 查詢 n8n 的 DNS
+@AWSBot 查詢 myapp 的 DNS
 ```
 
 你應該會看到：
@@ -156,7 +156,7 @@ https://xxxxxxxxxx.execute-api.ap-southeast-1.amazonaws.com/prod/query
    ```
    🔄 正在處理您的查詢...
    
-   查詢: 查詢 n8n 的 DNS
+   查詢: 查詢 myapp 的 DNS
    
    請稍候，結果將在處理完成後顯示。
    ```
@@ -165,8 +165,8 @@ https://xxxxxxxxxx.execute-api.ap-southeast-1.amazonaws.com/prod/query
    ```
    🤖 AWSBot 查詢結果
    
-   📍 DNS: n8n-dgt-dev.internal.example.com
-   ⚖️ ALB: alb-core-net-apse1-dev
+   📍 DNS: myapp-dev.internal.example.com
+   ⚖️ ALB: alb-app-dev
    🎯 Targets: 2/4 healthy
    
    ⏱️ 執行時間: 45000ms
@@ -211,8 +211,8 @@ def verify_teams_signature(event: Dict[str, Any]) -> bool:
 payload["attachments"][0]["content"]["body"].append({
     "type": "FactSet",
     "facts": [
-        {"title": "DNS:", "value": "n8n-dgt-dev.internal.example.com"},
-        {"title": "ALB:", "value": "alb-core-net-apse1-dev"},
+        {"title": "DNS:", "value": "myapp-dev.internal.example.com"},
+        {"title": "ALB:", "value": "alb-app-dev"},
         {"title": "Status:", "value": "✅ Healthy"}
     ]
 })
@@ -311,12 +311,12 @@ aws lambda get-function-configuration \
 
 ### 查詢 DNS
 ```
-@AWSBot 查詢 n8n 的 DNS
+@AWSBot 查詢 myapp 的 DNS
 ```
 
 ### 查詢 ALB 狀態
 ```
-@AWSBot 檢查 alb-core-net 的健康狀態
+@AWSBot 檢查 alb-app 的健康狀態
 ```
 
 ### 查詢 IP 資訊

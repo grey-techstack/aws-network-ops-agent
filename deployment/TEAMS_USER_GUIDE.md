@@ -44,9 +44,9 @@ AWSBot 是一個 AI 助手，可以幫你：
 
 **範例**:
 ```
-@AWSBot 查詢 n8n 的 DNS
+@AWSBot 查詢 myapp 的 DNS
 @AWSBot 找出 gitlab 的 FQDN
-@AWSBot n8n-dgt-dev 的 DNS 是什麼
+@AWSBot myapp-dev 的 DNS 是什麼
 ```
 
 **回應範例**:
@@ -54,14 +54,14 @@ AWSBot 是一個 AI 助手，可以幫你：
 🤖 AWSBot 查詢結果
 
 📍 DNS Information:
-   FQDN: n8n-dgt-dev.internal.example.com
+   FQDN: myapp-dev.internal.example.com
    Type: CNAME
-   Value: alb-core-net-apse1-dev.internal.example.com
+   Value: alb-app-dev.internal.example.com
 
 ⚖️ Load Balancer:
-   Name: alb-core-net-apse1-dev
+   Name: alb-app-dev
    Type: Application Load Balancer
-   DNS: alb-core-net-apse1-dev-123456789.ap-southeast-1.elb.amazonaws.com
+   DNS: alb-app-dev-123456789.ap-southeast-1.elb.amazonaws.com
 
 🎯 Target Health:
    Healthy: 2
@@ -77,8 +77,8 @@ AWSBot 是一個 AI 助手，可以幫你：
 
 **範例**:
 ```
-@AWSBot 檢查 alb-core-net 的健康狀態
-@AWSBot ALB alb-core-net-apse1-dev 的 targets 狀態
+@AWSBot 檢查 alb-app 的健康狀態
+@AWSBot ALB alb-app-dev 的 targets 狀態
 @AWSBot 查詢 ALB 健康檢查
 ```
 
@@ -86,11 +86,11 @@ AWSBot 是一個 AI 助手，可以幫你：
 ```
 🤖 AWSBot 查詢結果
 
-⚖️ Load Balancer: alb-core-net-apse1-dev
+⚖️ Load Balancer: alb-app-dev
 
 🎯 Target Groups:
    ┌─────────────────────────────────────────────┐
-   │ tg-n8n-dev                                  │
+   │ tg-myapp-dev                                  │
    │ • Healthy: 2/2                              │
    │ • Protocol: HTTP:8080                       │
    │ • Health Check: /health                     │
@@ -126,7 +126,7 @@ AWSBot 是一個 AI 助手，可以幫你：
 🖥️ Associated Resource:
    Type: EC2 Instance
    ID: i-0123456789abcdef0
-   Name: n8n-worker-01
+   Name: myapp-worker-01
    State: running
 
 🔒 Security Groups:
@@ -142,7 +142,7 @@ AWSBot 是一個 AI 助手，可以幫你：
 
 **範例**:
 ```
-@AWSBot 追蹤 n8n-dgt-dev.example.com 的請求流程
+@AWSBot 追蹤 myapp-dev.example.com 的請求流程
 @AWSBot trace gitlab.example.com
 @AWSBot 查詢 app.example.com 的完整路徑
 ```
@@ -151,26 +151,26 @@ AWSBot 是一個 AI 助手，可以幫你：
 ```
 🤖 AWSBot 查詢結果
 
-🔄 Request Flow Trace: n8n-dgt-dev.example.com
+🔄 Request Flow Trace: myapp-dev.example.com
 
 1️⃣ F5 WAF
    Virtual Server: vs-external-443
-   Pool: pool-n8n-dev
+   Pool: pool-myapp-dev
    Status: ✅ Available
 
 2️⃣ Route53
    Hosted Zone: example.com
-   Record: n8n-dgt-dev.example.com
+   Record: myapp-dev.example.com
    Type: CNAME → internal.example.com
 
 3️⃣ Internal DNS
-   Record: n8n-dgt-dev.internal.example.com
-   Type: CNAME → alb-core-net-apse1-dev.internal.example.com
+   Record: myapp-dev.internal.example.com
+   Type: CNAME → alb-app-dev.internal.example.com
 
 4️⃣ Application Load Balancer
-   Name: alb-core-net-apse1-dev
+   Name: alb-app-dev
    Listener: HTTPS:443
-   Target Group: tg-n8n-dev
+   Target Group: tg-myapp-dev
    Targets: 2/2 healthy
 
 5️⃣ Target Instances
@@ -222,10 +222,10 @@ AWSBot 是一個 AI 助手，可以幫你：
 AWSBot 支援自然語言，你可以用各種方式問同一個問題：
 
 ```
-@AWSBot 查詢 n8n 的 DNS
-@AWSBot n8n 的 DNS 是什麼
-@AWSBot 幫我找 n8n 的 DNS 記錄
-@AWSBot 我想知道 n8n 的 DNS
+@AWSBot 查詢 myapp 的 DNS
+@AWSBot myapp 的 DNS 是什麼
+@AWSBot 幫我找 myapp 的 DNS 記錄
+@AWSBot 我想知道 myapp 的 DNS
 ```
 
 ### 2. 使用服務名稱
@@ -233,7 +233,7 @@ AWSBot 支援自然語言，你可以用各種方式問同一個問題：
 可以直接使用服務名稱，不需要完整的 FQDN：
 
 ```
-@AWSBot 查詢 n8n          ✅
+@AWSBot 查詢 myapp          ✅
 @AWSBot 查詢 gitlab       ✅
 @AWSBot 查詢 jenkins      ✅
 ```
@@ -243,7 +243,7 @@ AWSBot 支援自然語言，你可以用各種方式問同一個問題：
 可以在一個查詢中問多個問題：
 
 ```
-@AWSBot 查詢 n8n 的 DNS 和健康狀態
+@AWSBot 查詢 myapp 的 DNS 和健康狀態
 @AWSBot 檢查 gitlab 的 ALB 和 targets
 ```
 
@@ -316,10 +316,10 @@ AWSBot 支援自然語言，你可以用各種方式問同一個問題：
 
 | 查詢類型 | 關鍵字 | 執行時間 | 範例 |
 |---------|--------|---------|------|
-| DNS 查詢 | DNS, FQDN, 域名 | 20-30s | `@AWSBot 查詢 n8n 的 DNS` |
+| DNS 查詢 | DNS, FQDN, 域名 | 20-30s | `@AWSBot 查詢 myapp 的 DNS` |
 | ALB 狀態 | ALB, 健康, targets | 25-35s | `@AWSBot 檢查 ALB 健康狀態` |
 | IP 調查 | IP, 調查, 查詢 | 20-30s | `@AWSBot 調查 IP 10.0.1.100` |
-| FQDN 追蹤 | 追蹤, trace, 流程 | 40-60s | `@AWSBot 追蹤 n8n.example.com` |
+| FQDN 追蹤 | 追蹤, trace, 流程 | 40-60s | `@AWSBot 追蹤 myapp.example.com` |
 | 日誌查詢 | 日誌, logs, VPC | 30-50s | `@AWSBot 查詢 VPC Flow Logs` |
 
 ## 🎯 最佳實踐
@@ -335,8 +335,8 @@ AWSBot 支援自然語言，你可以用各種方式問同一個問題：
 
 ✅ 好的查詢：
 ```
-@AWSBot 查詢 n8n 的 DNS
-@AWSBot 檢查 alb-core-net 的健康狀態
+@AWSBot 查詢 myapp 的 DNS
+@AWSBot 檢查 alb-app 的健康狀態
 @AWSBot 調查 IP 10.0.1.100
 ```
 
@@ -345,13 +345,13 @@ AWSBot 支援自然語言，你可以用各種方式問同一個問題：
 ❌ 不好：
 ```
 @AWSBot 查詢 alb
-@AWSBot 檢查 n8n
+@AWSBot 檢查 myapp
 ```
 
 ✅ 好：
 ```
-@AWSBot 查詢 alb-core-net-apse1-dev
-@AWSBot 檢查 n8n-dgt-dev
+@AWSBot 查詢 alb-app-dev
+@AWSBot 檢查 myapp-dev
 ```
 
 ### 3. 指定時間範圍（日誌查詢）
@@ -390,7 +390,7 @@ AWSBot 支援自然語言，你可以用各種方式問同一個問題：
 
 試試看：
 ```
-@AWSBot 查詢 n8n 的 DNS
+@AWSBot 查詢 myapp 的 DNS
 ```
 
 祝你使用愉快！🚀

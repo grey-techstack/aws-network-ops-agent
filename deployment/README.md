@@ -29,7 +29,7 @@ export TEAMS_INCOMING_WEBHOOK_URL='https://outlook.office.com/webhook/...'
 
 Then in Teams:
 ```
-@AWSBot 查詢 n8n 的 DNS
+@AWSBot 查詢 myapp 的 DNS
 ```
 
 📚 **See [TEAMS_INTEGRATION_QUICKSTART.md](./TEAMS_INTEGRATION_QUICKSTART.md) for complete setup guide**

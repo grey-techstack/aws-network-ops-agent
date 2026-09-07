@@ -40,8 +40,8 @@ Bot:  [Still remembers - shows cert expiry for vision-uat.example.com]
   "response": "...",
   "session_data": {
     "last_fqdn": "vision-uat.example.com",
-    "last_lb": "grp-api-uat-dgtvsion",
-    "last_pool": "grp-api-uat-dgtvsion-443"
+    "last_lb": "lb-app-uat",
+    "last_pool": "lb-app-uat-443"
   },
   "ttl": 1707962641  # Auto-delete after 24 hours
 }
@@ -317,7 +317,7 @@ Bot:  [Infers: compare vision-uat.example.com with vision-prd.example.com]
 User: @AWSBot summarize our conversation
 Bot:  We discussed:
       1. vision-uat.example.com trace
-      2. Origin pool: grp-api-uat-dgtvsion-443
+      2. Origin pool: lb-app-uat-443
       3. Certificate expires: 2026-05-25
 ```
 

@@ -610,7 +610,7 @@
                 <p><span class="badge badge-danger">MANDATORY</span></p>
                 <div class="example-box">
                     <strong>Input:</strong>
-                    <pre>{"pool_name": "grp-api-dev-appcontrol-443", "namespace": "acme-net"}</pre>
+                    <pre>{"pool_name": "lb-app-dev-app-svc-443", "namespace": "acme-net"}</pre>
                     <strong>Returns:</strong> Origin servers (IPs/DNS), port, health check config, load balancing algorithm
                 </div>
             </div>
@@ -620,7 +620,7 @@
                 <p>Query F5 load balancer by its name (when you know the LB name).</p>
                 <div class="example-box">
                     <strong>Input:</strong>
-                    <pre>{"lb_name": "grp-api-dev-appcontrol", "namespace": "acme-net"}</pre>
+                    <pre>{"lb_name": "lb-app-dev-app-svc", "namespace": "acme-net"}</pre>
                 </div>
             </div>
             
@@ -729,7 +729,7 @@
                     <h4>🛡️ F5 WAF Queries</h4>
                     <ul>
                         <li>"Query F5 load balancer for app-control-dev01.example.com"</li>
-                        <li>"Show me origin pool grp-api-dev-appcontrol-443 backend servers"</li>
+                        <li>"Show me origin pool lb-app-dev-app-svc-443 backend servers"</li>
                         <li>"List all F5 load balancers in acme-net namespace"</li>
                         <li>"Check certificate expiry for demo.example.com"</li>
                     </ul>
@@ -825,23 +825,23 @@
             <div class="example-box">
                 <pre>
 🛡️ F5 WAF/Load Balancer (First Layer)
-- Load Balancer: grp-api-uat-dgtvsion
+- Load Balancer: lb-app-uat
 - Domains: vision-uat.example.com
 - Certificate Expiry: 2026-05-25 (116 days)
-- Origin Pool: grp-api-uat-dgtvsion-443
+- Origin Pool: lb-app-uat-443
 - Origin Servers:
   - Type: public_name
-  - DNS Name: vsion-uat-cf.apse1.dgt.np-api.example.com
+  - DNS Name: app-uat-cf.apse1.api.example.com
   - Port: 443
 
 📍 DNS Resolution (Route53)
-- FQDN: vsion-uat-cf.apse1.dgt.np-api.example.com
-- Hosted Zone: dgt.np-api.example.com (Z123ABC)
+- FQDN: app-uat-cf.apse1.api.example.com
+- Hosted Zone: api.example.com (Z123ABC)
 - Record Type: ALIAS → d123abc.cloudfront.net
 
 ☁️ CloudFront Distribution
 - Distribution ID: E123ABC
-- Aliases: vsion-uat-cf.apse1.dgt.np-api.example.com
+- Aliases: app-uat-cf.apse1.api.example.com
 - Origin: my-alb-123.us-east-1.elb.amazonaws.com
 
 ⚖️ Load Balancer (ALB)

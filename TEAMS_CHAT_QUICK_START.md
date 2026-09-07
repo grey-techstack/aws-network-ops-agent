@@ -14,7 +14,7 @@ You: @AWSBot trace vision-uat.example.com
 Bot: [Shows F5, DNS, ALB details]
 
 You: @AWSBot what's the origin pool?
-Bot: Origin pool for vision-uat.example.com is grp-api-uat-dgtvsion-443
+Bot: Origin pool for vision-uat.example.com is lb-app-uat-443
      [Shows backend servers]
 
 You: @AWSBot check certificate

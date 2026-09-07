@@ -5,7 +5,7 @@ Teams Webhook Integration Flow
 │                          TEAMS CHANNEL                                  │
 │                                                                         │
 │  👤 User types:                                                         │
-│     @AWSBot 查詢 n8n 的 DNS                                            │
+│     @AWSBot 查詢 myapp 的 DNS                                            │
 │                                                                         │
 └─────────────────────────────────────────────────────────────────────────┘
                                   │
@@ -13,7 +13,7 @@ Teams Webhook Integration Flow
                                   │     POST request with:
                                   │     {
                                   │       "type": "message",
-                                  │       "text": "<at>AWSBot</at> 查詢 n8n 的 DNS",
+                                  │       "text": "<at>AWSBot</at> 查詢 myapp 的 DNS",
                                   │       "from": {"name": "User"},
                                   │       "conversation": {"id": "conv-123"}
                                   │     }
@@ -92,7 +92,7 @@ Teams Webhook Integration Flow
                                   │           "type": "AdaptiveCard",
                                   │           "body": [
                                   │             {"type": "TextBlock", "text": "🤖 AWSBot 查詢結果"},
-                                  │             {"type": "TextBlock", "text": "📍 DNS: n8n-dgt-dev..."}
+                                  │             {"type": "TextBlock", "text": "📍 DNS: myapp-dev..."}
                                   │           ]
                                   │         }
                                   │       }]
@@ -115,8 +115,8 @@ Teams Webhook Integration Flow
 │     ┌─────────────────────────────────────────────────────────────┐   │
 │     │ 🤖 AWSBot 查詢結果                                          │   │
 │     │                                                             │   │
-│     │ 📍 DNS: n8n-dgt-dev.internal.example.com                       │   │
-│     │ ⚖️ ALB: alb-core-net-apse1-dev                             │   │
+│     │ 📍 DNS: myapp-dev.internal.example.com                       │   │
+│     │ ⚖️ ALB: alb-app-dev                             │   │
 │     │ 🎯 Targets: 2/4 healthy                                     │   │
 │     │                                                             │   │
 │     │ ⏱️ 執行時間: 45000ms                                        │   │

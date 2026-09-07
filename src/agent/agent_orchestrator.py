@@ -229,7 +229,7 @@ class AgentOrchestrator:
         """
         entities = {}
         
-        # Extract domain names (e.g., n8n.internal.example.com)
+        # Extract domain names (e.g., myapp.internal.example.com)
         domain_patterns = [
             r'(?:domain|FQDN|DNS)[:\s]+([a-zA-Z0-9][-a-zA-Z0-9]*(?:\.[a-zA-Z0-9][-a-zA-Z0-9]*)+)',
             r'([a-zA-Z0-9][-a-zA-Z0-9]*\.internal\.example\.com)',
@@ -247,7 +247,7 @@ class AgentOrchestrator:
         if alb_match:
             entities['alb_dns'] = alb_match.group(1)
         
-        # Extract ALB names (e.g., internal-alb-core-net-apse1-np-dgt-pv-01)
+        # Extract ALB names (e.g., internal-alb-app-01)
         alb_name_pattern = r'(?:ALB|Load Balancer)[:\s]+([a-zA-Z0-9-]+(?:alb|nlb)[a-zA-Z0-9-]*)'
         alb_name_match = re.search(alb_name_pattern, response, re.IGNORECASE)
         if alb_name_match:

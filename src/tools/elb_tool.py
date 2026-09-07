@@ -28,7 +28,7 @@ def query_load_balancer(
     
     Args:
         dns_name: Load balancer DNS name (e.g., my-alb.us-east-1.elb.amazonaws.com)
-        fqdn: FQDN to match against listener rule host headers. Can be the original domain (e.g., partner.example.com) or the Route53/F5 origin DNS (e.g., d2chk-preprod.apse1.dgt.np-api.example.com). Pass BOTH the original FQDN and the origin DNS separated by comma if available (e.g., "partner.example.com,d2chk-preprod.apse1.dgt.np-api.example.com").
+        fqdn: FQDN to match against listener rule host headers. Can be the original domain (e.g., partner.example.com) or the Route53/F5 origin DNS (e.g., app-preprod.apse1.api.example.com). Pass BOTH the original FQDN and the origin DNS separated by comma if available (e.g., "partner.example.com,app-preprod.apse1.api.example.com").
         account_id: AWS account ID to search in (optional)
         
     Returns:

@@ -99,7 +99,7 @@ When tracing any FQDN or domain, the agent MUST follow this order:
 
 ### ⚠️ EXCEPTION: internal.example.com Domain
 
-**IF** the FQDN contains "internal.example.com" (e.g., n8n.internal.example.com, api.internal.example.com):
+**IF** the FQDN contains "internal.example.com" (e.g., myapp.internal.example.com, api.internal.example.com):
 - **SKIP** F5 WAF check entirely (internal.example.com is NOT managed by F5)
 - **START DIRECTLY** with Route53 DNS check (Step 2)
 - This is the ONLY exception to the F5-first rule
@@ -342,13 +342,13 @@ for lb in items:
 
 ```
 🛡️ F5 WAF/Load Balancer
-- Load Balancer: grp-api-dev-appcontrol
+- Load Balancer: lb-app-dev-app-svc
 - Domains: app-control-dev01.example.com
 - Certificate Expiry: 2026-07-10 (365 days)
-- Origin Pool: grp-api-dev-appcontrol-443
+- Origin Pool: lb-app-dev-app-svc-443
 
 🔗 Origin Pool (Backend Servers) - MANDATORY
-- Pool: grp-api-dev-appcontrol-443
+- Pool: lb-app-dev-app-svc-443
 - Origin Servers:
   - Type: public_ip
   - IP: 203.0.113.20
@@ -399,7 +399,7 @@ ELSE:
 
 **Before (with timeout)**:
 ```
-Query: "check DNS for n8n.internal.example.com"
+Query: "check DNS for myapp.internal.example.com"
 1. F5 check (scans 116 LBs) → 60+ seconds
 2. Route53 DNS → 2 seconds
 3. ALB check → 5 seconds
@@ -408,7 +408,7 @@ Total: 90+ seconds → TIMEOUT ❌
 
 **After (no timeout)**:
 ```
-Query: "check DNS for n8n.internal.example.com"
+Query: "check DNS for myapp.internal.example.com"
 1. Detect "internal.example.com" → SKIP F5
 2. Route53 DNS → 2 seconds
 3. ALB check → 5 seconds
@@ -433,7 +433,7 @@ Total: ~10 seconds → SUCCESS ✅
 # Test internal.example.com (should skip F5)
 aws lambda invoke \
   --function-name aws-ops-agent-dev \
-  --payload '{"query": "check DNS for n8n.internal.example.com"}' \
+  --payload '{"query": "check DNS for myapp.internal.example.com"}' \
   response.json
 
 # Verify no F5 tool call in logs

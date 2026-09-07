@@ -23,7 +23,7 @@ Ask *"trace the DNS path for `app.example.com`"* or *"why is `203.0.113.20` unre
 - 🌐 **IP investigation** — maps an IP to its AWS resource, checks it against a corporate egress allowlist, and adds geolocation.
 - 🛠️ **Self-composing AWS CLI tool** — the LLM builds its own AWS CLI commands behind a **read-only operation whitelist**, so it can reach EC2/EKS/RDS/etc. without a bespoke tool per service.
 - 🏢 **Multi-account** — assumes read-only cross-account roles via AWS SSO.
-- 💬 **Microsoft Teams chat** + **n8n / MCP** integrations.
+- 💬 **Microsoft Teams chat** — drive the agent by `@mention` in a channel, with per-conversation context.
 - ✅ **Production-grade guts** — per-call caching, retries, input validation, structured logging, and a unit + property-based (`hypothesis`) test suite.
 
 ## Architecture
@@ -32,27 +32,25 @@ Ask *"trace the DNS path for `app.example.com`"* or *"why is `203.0.113.20` unre
 
 ```mermaid
 flowchart LR
-    U[Engineer] -->|@mention| T[Microsoft Teams]
-    U -->|REST| AGW
-    T --> AGW[API Gateway]
-    AGW --> L[Lambda]
-    subgraph L[Lambda: agent runtime]
-      O[LangChain agent orchestrator] --> B[(Amazon Bedrock LLM)]
-      O --> TL[Tool layer]
-    end
-    TL --> AWS[(AWS APIs: Route53 / CloudFront / ELB / Athena / EC2 / EKS)]
-    TL --> WAF[(External WAF API)]
+    U["Engineer"] -->|"@mention"| T["Microsoft Teams"]
+    U -->|"REST"| AGW["API Gateway"]
+    T --> AGW
+    AGW --> O["LangChain agent orchestrator"]
+    O --> B["Amazon Bedrock LLM"]
+    O --> TL["Tool layer"]
+    TL --> AWS["AWS APIs: Route53, CloudFront, ELB, Athena, EC2, EKS"]
+    TL --> WAF["External WAF API"]
 ```
 
 **The edge-to-origin path the agent traces**
 
 ```mermaid
 flowchart LR
-    NET[Internet] --> R53[Route 53]
-    R53 --> WAF[WAF]
-    WAF --> CF[CloudFront]
-    CF --> ALB[ALB / NLB]
-    ALB --> ORIG[EC2 / EKS origin]
+    NET["Internet"] --> R53["Route 53"]
+    R53 --> WAF["WAF"]
+    WAF --> CF["CloudFront"]
+    CF --> ALB["ALB / NLB"]
+    ALB --> ORIG["EC2 / EKS origin"]
 ```
 
 ## How the agent reasons
@@ -76,7 +74,7 @@ flowchart LR
 
 ## Tech stack
 
-**Python 3.9+** · **LangChain** on **Amazon Bedrock** · AWS **Lambda, API Gateway, Route 53, CloudFront, ELB, Athena, DynamoDB, CloudWatch, IAM/SSO** · **CloudFormation / Terraform** IaC · **Pydantic v2** · **pytest + hypothesis + moto** · integrations: **Microsoft Teams**, **n8n (MCP)**.
+**Python 3.9+** · **LangChain** on **Amazon Bedrock** · AWS **Lambda, API Gateway, Route 53, CloudFront, ELB, Athena, DynamoDB, CloudWatch, IAM/SSO** · **CloudFormation / Terraform** IaC · **Pydantic v2** · **pytest + hypothesis + moto** · integration: **Microsoft Teams**.
 
 ## Getting started
 
@@ -113,7 +111,6 @@ Deploy the Lambda + API Gateway with the provided **CloudFormation** or **Terraf
 ## Integrations
 
 - **Microsoft Teams** — an outgoing-webhook handler responds to `@mention`s and keeps per-conversation context. See `docs/` for setup.
-- **n8n / MCP** — the agent can be exposed as an MCP server so n8n workflows can call it (`n8n-file/`).
 
 ## Testing
 

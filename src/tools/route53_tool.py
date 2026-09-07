@@ -32,7 +32,7 @@ def query_route53_records(
     
     IMPORTANT - When tracing end-to-end flow:
     - Use the F5 origin server DNS as the fqdn parameter (NOT the user's original FQDN).
-    - Example: F5 origin is d2chk-preprod.apse1.dgt.np-api.example.com → query this, not uat-ecapi.example.com
+    - Example: F5 origin is app-preprod.apse1.api.example.com → query this, not app-ec-uat.example.com
     - If FQDN ends with .internal.example.com → query the internal.example.com hosted zone directly.
     
     NEXT STEP - Based on DNS record value ending:

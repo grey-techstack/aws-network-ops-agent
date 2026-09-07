@@ -232,7 +232,7 @@ Time: 2026-01-27 17:00:00
 ### 測試 2: DNS 查詢
 
 ```
-@AWSBot 查詢 n8n 的 DNS
+@AWSBot 查詢 myapp 的 DNS
 ```
 
 **預期結果**:
@@ -241,8 +241,8 @@ Time: 2026-01-27 17:00:00
 
 ✅ DNS 查詢成功
 
-📍 域名: n8n-dgt-dev.internal.example.com
-⚖️ ALB: alb-core-net-apse1-dev
+📍 域名: myapp-dev.internal.example.com
+⚖️ ALB: alb-app-dev
 🎯 Targets: 2/2 healthy
 
 Time: 2026-01-27 17:00:00
@@ -414,7 +414,7 @@ Incoming Webhook (Lambda → Teams)
 
 ### 測試結果
 - ✅ `@AWSBot test` - 收到回應
-- ✅ `@AWSBot 查詢 n8n 的 DNS` - 收到查詢結果
+- ✅ `@AWSBot 查詢 myapp 的 DNS` - 收到查詢結果
 
 ---
 

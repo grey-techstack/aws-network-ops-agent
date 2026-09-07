@@ -15,9 +15,9 @@ This document describes the complete architecture for Teams interactive chat wit
 │  │                                                                          │   │
 │  │  👤 User: @AWSBot trace vision-uat.example.com                              │   │
 │  │  🤖 Bot:  🔄 正在處理您的查詢...                                        │   │
-│  │  🤖 Bot:  🛡️ F5 WAF: grp-api-uat-dgtvsion                              │   │
-│  │           🔗 Origin Pool: grp-api-uat-dgtvsion-443                      │   │
-│  │           📍 Backend: vsion-uat-cf.apse1.dgt.np-api.example.com            │   │
+│  │  🤖 Bot:  🛡️ F5 WAF: lb-app-uat                              │   │
+│  │           🔗 Origin Pool: lb-app-uat-443                      │   │
+│  │           📍 Backend: app-uat-cf.apse1.api.example.com            │   │
 │  │                                                                          │   │
 │  │  👤 User: @AWSBot what's the certificate expiry?                        │   │
 │  │  🤖 Bot:  Certificate for vision-uat.example.com expires 2026-05-25        │   │
@@ -71,7 +71,7 @@ This document describes the complete architecture for Teams interactive chat wit
 │  │  │    "19:abc123@thread.tacv2": {                                      │ │ │
 │  │  │      messages: [                                                     │ │ │
 │  │  │        {role: "user", content: "trace vision-uat.example.com"},         │ │ │
-│  │  │        {role: "assistant", content: "🛡️ F5 WAF: grp-api-..."},     │ │ │
+│  │  │        {role: "assistant", content: "🛡️ F5 WAF: lb-app-..."},     │ │ │
 │  │  │        {role: "user", content: "what's the certificate expiry?"}   │ │ │
 │  │  │      ],                                                              │ │ │
 │  │  │      last_activity: 2026-02-12T14:30:00Z,                          │ │ │
@@ -90,7 +90,7 @@ This document describes the complete architecture for Teams interactive chat wit
 │  │  messages = [                                                             │ │
 │  │    SystemMessage("You are an AWS expert..."),                            │ │
 │  │    HumanMessage("trace vision-uat.example.com"),        # History           │ │
-│  │    AIMessage("🛡️ F5 WAF: grp-api-..."),             # History           │ │
+│  │    AIMessage("🛡️ F5 WAF: lb-app-..."),             # History           │ │
 │  │    HumanMessage("what's the certificate expiry?")   # Current           │ │
 │  │  ]                                                                        │ │
 │  └───────────────────────────────────────────────────────────────────────────┘ │

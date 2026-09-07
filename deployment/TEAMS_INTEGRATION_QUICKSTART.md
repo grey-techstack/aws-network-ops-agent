@@ -53,7 +53,7 @@ export TEAMS_INCOMING_WEBHOOK_URL='https://outlook.office.com/webhook/xxxxx/...'
 在 Teams Channel 中輸入：
 
 ```
-@AWSBot 查詢 n8n 的 DNS
+@AWSBot 查詢 myapp 的 DNS
 ```
 
 你會看到：
@@ -61,15 +61,15 @@ export TEAMS_INCOMING_WEBHOOK_URL='https://outlook.office.com/webhook/xxxxx/...'
 1. **立即回應**（< 5 秒）：
    ```
    🔄 正在處理您的查詢...
-   查詢: 查詢 n8n 的 DNS
+   查詢: 查詢 myapp 的 DNS
    請稍候，結果將在處理完成後顯示。
    ```
 
 2. **最終結果**（20-60 秒後）：
    ```
    🤖 AWSBot 查詢結果
-   📍 DNS: n8n-dgt-dev.internal.example.com
-   ⚖️ ALB: alb-core-net-apse1-dev
+   📍 DNS: myapp-dev.internal.example.com
+   ⚖️ ALB: alb-app-dev
    🎯 Targets: 2/4 healthy
    ⏱️ 執行時間: 45000ms
    ```
@@ -94,13 +94,13 @@ export TEAMS_INCOMING_WEBHOOK_URL='https://outlook.office.com/webhook/xxxxx/...'
 
 ### 查詢 DNS
 ```
-@AWSBot 查詢 n8n 的 DNS
+@AWSBot 查詢 myapp 的 DNS
 @AWSBot 找出 gitlab 的 FQDN
 ```
 
 ### 檢查 ALB
 ```
-@AWSBot 檢查 alb-core-net 的健康狀態
+@AWSBot 檢查 alb-app 的健康狀態
 @AWSBot 查詢 ALB targets
 ```
 
@@ -166,7 +166,7 @@ aws lambda update-function-configuration \
 ┌─────────────────────────────────────────────────────────────┐
 │                      Teams Channel                          │
 │                                                             │
-│  👤 User: @AWSBot 查詢 n8n 的 DNS                          │
+│  👤 User: @AWSBot 查詢 myapp 的 DNS                          │
 └─────────────────────────────────────────────────────────────┘
                             │
                             │ (1) Outgoing Webhook
@@ -212,8 +212,8 @@ aws lambda update-function-configuration \
 │                      Teams Channel                          │
 │                                                             │
 │  🤖 AWSBot:                                                 │
-│     📍 DNS: n8n-dgt-dev.internal.example.com                   │
-│     ⚖️ ALB: alb-core-net-apse1-dev                         │
+│     📍 DNS: myapp-dev.internal.example.com                   │
+│     ⚖️ ALB: alb-app-dev                         │
 │     🎯 Targets: 2/4 healthy                                 │
 │     ⏱️ 執行時間: 45000ms                                    │
 └─────────────────────────────────────────────────────────────┘

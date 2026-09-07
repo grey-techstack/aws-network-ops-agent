@@ -176,7 +176,7 @@ if [ -n "$API_URL" ]; then
     echo "   - Description: AWS Operations AI Assistant"
     echo ""
     echo "2. Test in Teams Channel:"
-    echo "   ${GREEN}@AWSBot 查詢 n8n 的 DNS${NC}"
+    echo "   ${GREEN}@AWSBot 查詢 myapp 的 DNS${NC}"
     echo ""
 else
     echo -e "${YELLOW}Warning: Could not retrieve API Gateway URL${NC}"

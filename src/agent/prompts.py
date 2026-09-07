@@ -109,7 +109,7 @@ EXAMPLE_QUERIES = {
     ],
     "f5": [
         "Query F5 load balancer for demo.example.com",
-        "Show me origin pool backend servers for grp-api-dev-pool"
+        "Show me origin pool backend servers for lb-app-dev-pool"
     ],
     "aws_cli": [
         "List all EC2 instances with tag Environment=production",

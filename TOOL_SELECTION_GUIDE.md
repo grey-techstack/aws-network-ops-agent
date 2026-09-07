@@ -144,7 +144,7 @@ AI 決策 (新策略):
 
 ### 例子 4: 查詢 F5 Origin Pool
 ```
-用戶: "Show me origin pool backend servers for grp-api-dev-appcontrol-443"
+用戶: "Show me origin pool backend servers for lb-app-dev-app-svc-443"
 
 AI 決策 (新策略):
 1. 識別: F5 WAF 查詢 (非 AWS 服務)

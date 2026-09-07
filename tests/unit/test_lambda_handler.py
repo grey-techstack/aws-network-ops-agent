@@ -16,13 +16,13 @@ def test_lambda_handler_missing_query(lambda_context):
     
     assert response["statusCode"] == 400
     body = json.loads(response["body"])
-    assert "error" in body
-    assert "query" in body["error"]
+    assert body.get("status") == "error"
+    assert "query" in body.get("error_message", "")
 
 
-@pytest.mark.unit
+@pytest.mark.integration  # exercises the full handler -> agent -> Bedrock path; needs AWS env vars + credentials
 def test_lambda_handler_valid_query(lambda_context):
-    """Test Lambda handler with valid query."""
+    """Test Lambda handler with valid query (end-to-end; requires AWS)."""
     event = {
         "body": json.dumps({
             "query": "Trace demo.example.com",

@@ -6,7 +6,7 @@ Cache is refreshed daily by EventBridge-triggered Lambda.
 
 DynamoDB Table: aws-ops-agent-f5-cache
   PK: FQDN#{fqdn}  (e.g., FQDN#appcc.example.com)
-  SK: LB#{lb_name}  (e.g., LB#grp-api-prd-appcc)
+  SK: LB#{lb_name}  (e.g., LB#lb-app-prd-appcc)
   
   Also stores a full LB index:
   PK: LB_INDEX

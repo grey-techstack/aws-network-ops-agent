@@ -346,9 +346,9 @@ def query_f5_load_balancer(
         
         # --- OPTIMIZATION: Pre-filter LB names using FQDN parts ---
         # Extract meaningful parts from FQDN for name-based pre-filtering
-        # e.g., "uat-apihk.example.com" → ["uat-apihk", "apihk", "uat"]
+        # e.g., "app-hk-uat.example.com" → ["app-hk-uat", "apihk", "uat"]
         fqdn_parts = fqdn_normalized.split('.')
-        hostname = fqdn_parts[0] if fqdn_parts else ''  # e.g., "uat-apihk"
+        hostname = fqdn_parts[0] if fqdn_parts else ''  # e.g., "app-hk-uat"
         hostname_segments = hostname.split('-')  # e.g., ["uat", "apihk"]
         
         # Build search keywords from hostname
@@ -932,7 +932,7 @@ def query_f5_load_balancer_by_name(
     Use this tool to get full details of a specific F5 load balancer when you know its name.
     
     Args:
-        lb_name: Load balancer name (e.g., grp-api-dev-appcontrol)
+        lb_name: Load balancer name (e.g., lb-app-dev-app-svc)
         namespace: F5 namespace (optional, uses default from credentials)
         
     Returns:
