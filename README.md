@@ -17,12 +17,11 @@ Ask *"trace `app.example.com`"* and it plans a sequence of read-only tool calls,
 
 It runs as a Lambda behind API Gateway and can be driven over REST **or** by `@mention` in a Microsoft Teams channel.
 
-**Scope — what it does not do.** It *maps and reports* the path; it does not diagnose **why** a target is unreachable (no security-group, NACL or route-table analysis, and no active connectivity probing). The Athena log-query tools are written but not yet working end-to-end.
+**Scope — what it does not do.** It *maps and reports* the path; it does not diagnose **why** a target is unreachable (no security-group, NACL or route-table analysis, and no active connectivity probing).
 
 ## Key features
 
 - **Edge-to-origin FQDN tracing** — resolves a hostname through WAF → Route 53 → CloudFront → ALB/NLB → EC2/EKS origin and reports what it found at each hop.
-- **Natural-language log analysis** *(work in progress)* — turns questions into Athena queries over VPC Flow Logs and CloudFront access logs. Implemented, but not yet verified end-to-end.
 - **IP investigation** — maps an IP to its AWS resource, checks it against a corporate egress allowlist, and adds geolocation.
 - **Self-composing AWS CLI tool** — the LLM builds its own AWS CLI commands behind a read-only operation whitelist, reaching EC2/EKS/RDS/etc. without a bespoke tool per service.
 - **Multi-account** — assumes read-only cross-account roles via AWS SSO.
@@ -123,11 +122,8 @@ Design write-ups: [agent logic](docs/agent-logic.md) · [the whitelist-guarded C
 | `cloudfront_tool` | CloudFront | distributions, origins, behaviors |
 | `elb_tool` | ALB / NLB / ELB | listeners, rules, target health |
 | `ip_lookup_tool` | EC2 EIP + allowlist + geo | which resource / egress an IP belongs to |
-| `athena_vpc_flow_logs_tool` ⚠️ | Athena → VPC Flow Logs | traffic to/from an IP or ENI |
-| `athena_cloudfront_logs_tool` ⚠️ | Athena → CloudFront logs | requests, status codes, cache hits |
 | `f5_waf_tool` | external WAF (Distributed Cloud) | LB / origin-pool / WAF policy lookups |
 
-⚠️ The two Athena log tools are written but **not yet working end-to-end** — they still need the Glue/Athena tables and permissions provisioned. Everything else in the table is in use.
 
 ## Tech stack
 

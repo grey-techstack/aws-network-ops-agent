@@ -76,7 +76,6 @@ def process_query_with_tools(query: str) -> str:
 4. **F5 Distributed Cloud**: Query F5 load balancers and virtual hosts
    - Example: "Show F5 load balancers in namespace acme-net"
 
-5. **VPC Flow Logs**: Query VPC flow logs via Athena
    - Example: "Show flow logs for IP 10.0.1.5"
 
 6. **CloudFront Logs**: Query CloudFront access logs

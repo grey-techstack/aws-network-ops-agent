@@ -4,7 +4,6 @@ Error handlers for AWS Operations Agent.
 This module provides comprehensive error handling for:
 - Authentication errors (SSO role assumption, F5 credentials)
 - AWS API errors (throttling, permissions, not found, service unavailable)
-- Athena errors (timeout, syntax, permissions)
 - F5 WAF errors (unavailable, authentication)
 - Network errors (connection timeout, DNS, SSL/TLS)
 """
@@ -40,11 +39,6 @@ class AWSAPIError(AgentError):
         super().__init__(message, "aws_api", details)
 
 
-class AthenaError(AgentError):
-    """Exception for Athena query errors."""
-    
-    def __init__(self, message: str, details: Optional[Dict[str, Any]] = None):
-        super().__init__(message, "athena", details)
 
 
 class F5WAFError(AgentError):
@@ -187,66 +181,6 @@ class ErrorHandler:
             "timestamp": datetime.utcnow().isoformat()
         }
     
-    @staticmethod
-    def handle_athena_error(
-        error: Exception,
-        query_type: str,
-        query_execution_id: Optional[str] = None
-    ) -> Dict[str, Any]:
-        """Handle Athena query errors."""
-        error_message = str(error)
-        
-        if "timeout" in error_message.lower() or "exceeded" in error_message.lower():
-            user_message = "Athena query timed out"
-            troubleshooting = [
-                "Try reducing the time range for the query",
-                "Add more specific filters to reduce data scanned",
-                "Consider partitioning the data by date"
-            ]
-            
-        elif "syntax" in error_message.lower() or "parse" in error_message.lower():
-            user_message = "Athena query syntax error"
-            troubleshooting = [
-                "Query syntax is automatically generated - this may indicate a bug",
-                "Check CloudWatch Logs for the full query",
-                "Verify the Athena table schema matches expected format"
-            ]
-            
-        elif "access denied" in error_message.lower() or "not authorized" in error_message.lower():
-            user_message = "Permission denied for Athena query"
-            troubleshooting = [
-                "Verify the assumed role has Athena query permissions",
-                "Verify the role has S3 read permissions for the data location",
-                "Verify the role has S3 write permissions for query results"
-            ]
-            
-        elif "result set" in error_message.lower() and "large" in error_message.lower():
-            user_message = "Athena query result set is too large"
-            troubleshooting = [
-                "Add more specific filters to reduce result size",
-                "Reduce the time range for the query",
-                "Results will be automatically paginated if possible"
-            ]
-            
-        else:
-            user_message = f"Athena query error: {error_message}"
-            troubleshooting = [
-                "Check CloudWatch Logs for detailed error information",
-                "Verify Athena database and table exist"
-            ]
-        
-        return {
-            "status": "error",
-            "error_type": "athena",
-            "error_message": user_message,
-            "error_details": {
-                "query_type": query_type,
-                "query_execution_id": query_execution_id,
-                "troubleshooting_steps": troubleshooting,
-                "original_error": ErrorHandler._sanitize_error_message(error_message)
-            },
-            "timestamp": datetime.utcnow().isoformat()
-        }
     
     @staticmethod
     def handle_f5_waf_error(
@@ -428,7 +362,6 @@ class ErrorHandler:
             "Route53": ["route53:ListHostedZones", "route53:ListResourceRecordSets"],
             "CloudFront": ["cloudfront:ListDistributions", "cloudfront:GetDistribution"],
             "ELB": ["elasticloadbalancing:DescribeLoadBalancers", "elasticloadbalancing:DescribeTargetGroups"],
-            "Athena": ["athena:StartQueryExecution", "athena:GetQueryExecution", "s3:GetObject", "s3:PutObject"],
             "Secrets Manager": ["secretsmanager:GetSecretValue"]
         }
         
@@ -458,8 +391,6 @@ def handle_error(error: Exception, error_type: str, **kwargs) -> Dict[str, Any]:
         return ErrorHandler.handle_authentication_error(error, **kwargs)
     elif error_type == "aws_api":
         return ErrorHandler.handle_aws_api_error(error, **kwargs)
-    elif error_type == "athena":
-        return ErrorHandler.handle_athena_error(error, **kwargs)
     elif error_type == "f5_waf":
         return ErrorHandler.handle_f5_waf_error(error, **kwargs)
     elif error_type == "network":

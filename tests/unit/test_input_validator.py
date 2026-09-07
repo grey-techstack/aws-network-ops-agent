@@ -325,48 +325,9 @@ class TestValidateToolInput:
             validate_tool_input("cloudfront", distribution_id="INVALID")
         assert "Invalid distribution ID" in str(exc_info.value)
     
-    def test_athena_vpc_flow_logs_valid_input(self):
-        """Test validation of valid Athena VPC flow logs input."""
-        validate_tool_input(
-            "athena_vpc_flow_logs",
-            source_ip="10.0.1.100",
-            destination_ip="10.0.2.200",
-            start_time="2024-01-01T00:00:00Z",
-            end_time="2024-01-02T00:00:00Z"
-        )
-        # Should not raise exception
     
-    def test_athena_vpc_flow_logs_invalid_ip(self):
-        """Test validation of invalid Athena VPC flow logs input."""
-        with pytest.raises(ValidationError) as exc_info:
-            validate_tool_input(
-                "athena_vpc_flow_logs",
-                source_ip="invalid-ip"
-            )
-        assert "Invalid source IP" in str(exc_info.value)
     
-    def test_athena_cloudfront_logs_valid_input(self):
-        """Test validation of valid Athena CloudFront logs input."""
-        validate_tool_input(
-            "athena_cloudfront_logs",
-            distribution_id="E285K0Z0YGWJXZ",
-            start_date="2024-01-01",
-            end_date="2024-01-31",
-            status_code_min=400,
-            status_code_max=599
-        )
-        # Should not raise exception
     
-    def test_athena_cloudfront_logs_invalid_date_range(self):
-        """Test validation of invalid Athena CloudFront logs input."""
-        with pytest.raises(ValidationError) as exc_info:
-            validate_tool_input(
-                "athena_cloudfront_logs",
-                distribution_id="E285K0Z0YGWJXZ",
-                start_date="2024-12-31",
-                end_date="2024-01-01"
-            )
-        assert "Invalid date range" in str(exc_info.value)
     
     def test_ip_lookup_tool_valid_input(self):
         """Test validation of valid IP lookup tool input."""

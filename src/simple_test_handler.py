@@ -230,7 +230,6 @@ I can help you with the following AWS operations:
    - Example: "Show F5 load balancers in namespace acme-net"
 
 5. **VPC Flow Logs** (Coming soon)
-   - Query VPC flow logs via Athena
    - Example: "Show flow logs for IP 10.0.1.5"
 
 6. **CloudFront Logs** (Coming soon)

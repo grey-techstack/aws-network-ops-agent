@@ -32,8 +32,6 @@ class TestFQDNTracingIntegration:
             'F5_SECRET_NAME': 'f5-api-credentials',
             'CORE_NETWORK_ACCOUNT_ID': '111111111111',
             'WORKLOAD_ACCOUNT_IDS': '222222222222,333333333333',
-            'ATHENA_DATABASE': 'centralized_logging',
-            'ATHENA_OUTPUT_BUCKET': 'aws-ops-agent-athena-results'
         }
         
         with patch.dict(os.environ, env_vars):

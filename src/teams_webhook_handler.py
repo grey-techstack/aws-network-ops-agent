@@ -37,8 +37,6 @@ def get_environment_variables() -> Dict[str, str]:
         'F5_SECRET_NAME': os.environ.get('F5_SECRET_NAME'),
         'CORE_NETWORK_ACCOUNT_ID': os.environ.get('CORE_NETWORK_ACCOUNT_ID'),
         'WORKLOAD_ACCOUNT_IDS': os.environ.get('WORKLOAD_ACCOUNT_IDS'),
-        'ATHENA_DATABASE': os.environ.get('ATHENA_DATABASE'),
-        'ATHENA_OUTPUT_BUCKET': os.environ.get('ATHENA_OUTPUT_BUCKET'),
         'TEAMS_INCOMING_WEBHOOK_URL': os.environ.get('TEAMS_INCOMING_WEBHOOK_URL')
     }
     

@@ -35,7 +35,7 @@ def role_arn_strategy(draw):
 def service_name_strategy(draw):
     """Generate valid AWS service names."""
     return draw(st.sampled_from([
-        'route53', 'cloudfront', 'elbv2', 'ec2', 'athena',
+        'route53', 'cloudfront', 'elbv2', 'ec2',
         's3', 'sts', 'secretsmanager', 'logs', 'iam'
     ]))
 
@@ -239,7 +239,7 @@ class TestCredentialCachingProperty:
             manager._sts_client = mock_sts_client
             
             # Request clients for different services
-            services = ['route53', 'cloudfront', 'elbv2', 'athena']
+            services = ['route53', 'cloudfront', 'elbv2']
             for service in services:
                 manager.get_boto3_client(service)
             

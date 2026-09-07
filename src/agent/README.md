@@ -77,15 +77,6 @@ try:
     # Validate Route53 tool input
     validate_tool_input("route53", fqdn="demo.example.com")
     
-    # Validate Athena CloudFront logs input
-    validate_tool_input(
-        "athena_cloudfront_logs",
-        distribution_id="E285K0Z0YGWJXZ",
-        start_date="2024-01-01",
-        end_date="2024-01-31",
-        status_code_min=400,
-        status_code_max=599
-    )
 except ValidationError as e:
     print(f"Validation failed: {e}")
 ```

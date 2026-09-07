@@ -57,8 +57,6 @@ def get_environment_variables() -> Dict[str, str]:
         'F5_SECRET_NAME': os.environ.get('F5_SECRET_NAME'),
         'CORE_NETWORK_ACCOUNT_ID': os.environ.get('CORE_NETWORK_ACCOUNT_ID'),
         'WORKLOAD_ACCOUNT_IDS': os.environ.get('WORKLOAD_ACCOUNT_IDS'),
-        'ATHENA_DATABASE': os.environ.get('ATHENA_DATABASE'),
-        'ATHENA_OUTPUT_BUCKET': os.environ.get('ATHENA_OUTPUT_BUCKET')
     }
     
     # Check for missing variables (CROSS_ACCOUNT_ROLE_NAME has default)
@@ -86,20 +84,12 @@ def get_environment_variables() -> Dict[str, str]:
             logger.error(error_msg)
             raise ValueError(error_msg)
     
-    # Validate ATHENA_OUTPUT_BUCKET format (basic S3 bucket name validation)
-    bucket_name = required_vars['ATHENA_OUTPUT_BUCKET']
-    if not bucket_name or len(bucket_name) < 3 or len(bucket_name) > 63:
-        error_msg = f"Invalid ATHENA_OUTPUT_BUCKET format: {bucket_name}. Must be a valid S3 bucket name"
-        logger.error(error_msg)
-        raise ValueError(error_msg)
     
     logger.info("All environment variables validated successfully")
     logger.info(f"Cross Account Role: {required_vars['CROSS_ACCOUNT_ROLE_NAME']}")
     logger.info(f"F5 Secret: {required_vars['F5_SECRET_NAME']}")
     logger.info(f"Core Network Account: {core_account_id}")
     logger.info(f"Workload Accounts: {len(account_ids)} accounts configured")
-    logger.info(f"Athena Database: {required_vars['ATHENA_DATABASE']}")
-    logger.info(f"Athena Output Bucket: {bucket_name}")
     
     return required_vars
 

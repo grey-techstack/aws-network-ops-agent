@@ -5,7 +5,6 @@ These tests validate the error handling workflow including:
 - Invalid SSO role ARN handling
 - Missing F5 credentials handling
 - Throttled AWS API calls handling
-- Athena query timeout handling
 - F5 API unavailable handling
 
 Requirements: 9.1, 9.2, 9.3, 9.4, 9.5, 9.6, 9.7, 9.8
@@ -27,7 +26,6 @@ from src.agent.error_handlers import (
     AgentError,
     AuthenticationError,
     AWSAPIError,
-    AthenaError,
     F5WAFError,
     NetworkError,
     handle_error
@@ -45,8 +43,6 @@ class TestErrorHandlingIntegration:
             'F5_SECRET_NAME': 'f5-api-credentials',
             'CORE_NETWORK_ACCOUNT_ID': '111111111111',
             'WORKLOAD_ACCOUNT_IDS': '222222222222',
-            'ATHENA_DATABASE': 'centralized_logging',
-            'ATHENA_OUTPUT_BUCKET': 'aws-ops-agent-athena-results'
         }
         with patch.dict(os.environ, env):
             yield env
@@ -153,42 +149,8 @@ class TestErrorHandlingIntegration:
         troubleshooting = result["error_details"]["troubleshooting_steps"]
         assert any("retry" in step.lower() for step in troubleshooting)
 
-    # Test Athena query timeout (Requirement 9.3)
-    def test_athena_query_timeout(self):
-        """Test handling of Athena query timeout (Req 9.3)."""
-        error = Exception("Query execution timeout exceeded")
-        result = ErrorHandler.handle_athena_error(
-            error,
-            query_type="vpc_flow_logs",
-            query_execution_id="query-123"
-        )
-        
-        assert result["status"] == "error"
-        assert result["error_type"] == "athena"
-        assert "timed out" in result["error_message"].lower()
 
-    def test_athena_timeout_suggests_optimization(self):
-        """Test Athena timeout suggests query optimization (Req 9.3)."""
-        error = Exception("Query execution timeout exceeded")
-        result = ErrorHandler.handle_athena_error(
-            error,
-            query_type="cloudfront_logs"
-        )
-        
-        troubleshooting = result["error_details"]["troubleshooting_steps"]
-        assert any("time range" in step.lower() or "filter" in step.lower() for step in troubleshooting)
 
-    def test_athena_syntax_error(self):
-        """Test handling of Athena syntax error."""
-        error = Exception("SYNTAX_ERROR: line 1:1: mismatched input")
-        result = ErrorHandler.handle_athena_error(
-            error,
-            query_type="vpc_flow_logs"
-        )
-        
-        assert "syntax" in result["error_message"].lower()
-
-    # Test F5 API unavailable (Requirement 9.4)
     def test_f5_api_unavailable(self):
         """Test handling of F5 API unavailable (Req 9.4)."""
         error = Exception("503 Service Unavailable")
@@ -378,9 +340,6 @@ class TestErrorHandlingIntegration:
         auth_result = ErrorHandler.handle_authentication_error(error, component="test")
         assert auth_result["error_type"] == "authentication"
         
-        athena_result = ErrorHandler.handle_athena_error(error, query_type="test")
-        assert athena_result["error_type"] == "athena"
-        
         f5_result = ErrorHandler.handle_f5_waf_error(error, operation="test")
         assert f5_result["error_type"] == "f5_waf"
 
@@ -391,9 +350,6 @@ class TestErrorHandlingIntegration:
         
         result = handle_error(error, "authentication", component="test")
         assert result["error_type"] == "authentication"
-        
-        result = handle_error(error, "athena", query_type="test")
-        assert result["error_type"] == "athena"
         
         result = handle_error(error, "f5_waf", operation="test")
         assert result["error_type"] == "f5_waf"

@@ -104,8 +104,6 @@ class AgentOrchestrator:
         )
         from src.tools.cloudfront_tool import query_cloudfront_distribution
         from src.tools.elb_tool import query_load_balancer, describe_load_balancer_listeners
-        from src.tools.athena_vpc_flow_logs_tool import query_vpc_flow_logs
-        from src.tools.athena_cloudfront_logs_tool import query_cloudfront_logs
         from src.tools.f5_waf_tool import (
             query_f5_load_balancer,
             query_f5_origin_pool,
@@ -179,8 +177,6 @@ class AgentOrchestrator:
             inject_args(query_cloudfront_distribution),
             inject_args(query_load_balancer),
             inject_args(describe_load_balancer_listeners),
-            inject_args(query_vpc_flow_logs),
-            inject_args(query_cloudfront_logs),
             inject_args(query_f5_load_balancer),
             inject_args(query_f5_origin_pool),
             inject_args(list_f5_load_balancers),

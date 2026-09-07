@@ -266,43 +266,7 @@ def validate_tool_input(tool_name: str, **parameters) -> None:
             if not is_valid:
                 raise ValidationError(f"Invalid DNS name: {error}")
     
-    elif tool_name == "athena_vpc_flow_logs":
-        if "source_ip" in parameters and parameters["source_ip"]:
-            is_valid, error = validate_ip_address(parameters["source_ip"])
-            if not is_valid:
-                raise ValidationError(f"Invalid source IP: {error}")
-        
-        if "destination_ip" in parameters and parameters["destination_ip"]:
-            is_valid, error = validate_ip_address(parameters["destination_ip"])
-            if not is_valid:
-                raise ValidationError(f"Invalid destination IP: {error}")
-        
-        is_valid, error = validate_datetime_range(
-            parameters.get("start_time"),
-            parameters.get("end_time")
-        )
-        if not is_valid:
-            raise ValidationError(f"Invalid time range: {error}")
     
-    elif tool_name == "athena_cloudfront_logs":
-        if "distribution_id" in parameters:
-            is_valid, error = validate_cloudfront_distribution_id(parameters["distribution_id"])
-            if not is_valid:
-                raise ValidationError(f"Invalid distribution ID: {error}")
-        
-        is_valid, error = validate_date_range(
-            parameters.get("start_date"),
-            parameters.get("end_date")
-        )
-        if not is_valid:
-            raise ValidationError(f"Invalid date range: {error}")
-        
-        is_valid, error = validate_http_status_code_range(
-            parameters.get("status_code_min"),
-            parameters.get("status_code_max")
-        )
-        if not is_valid:
-            raise ValidationError(f"Invalid status code range: {error}")
     
     elif tool_name == "f5_waf":
         if "fqdn" in parameters:
