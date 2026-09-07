@@ -18,7 +18,7 @@ Ask *"trace the DNS path for `app.example.com`"* or *"why is `203.0.113.20` unre
 ## Key features
 
 - **Edge-to-origin FQDN tracing** — resolves a hostname through WAF → Route 53 → CloudFront → ALB/NLB → EC2/EKS origin and reports what it found at each hop.
-- **Natural-language log analysis** — turns questions into Athena queries over VPC Flow Logs and CloudFront access logs.
+- **Natural-language log analysis** *(work in progress)* — turns questions into Athena queries over VPC Flow Logs and CloudFront access logs. Implemented, but not yet verified end-to-end.
 - **IP investigation** — maps an IP to its AWS resource, checks it against a corporate egress allowlist, and adds geolocation.
 - **Self-composing AWS CLI tool** — the LLM builds its own AWS CLI commands behind a read-only operation whitelist, reaching EC2/EKS/RDS/etc. without a bespoke tool per service.
 - **Multi-account** — assumes read-only cross-account roles via AWS SSO.
@@ -106,6 +106,8 @@ flowchart LR
 
 - **Tool selection is LLM-driven but constrained.** The system prompt encodes a mandatory FQDN-tracing workflow and anti-hallucination rules ("only report what a tool returned").
 - **The generic AWS CLI tool** lets the model assemble its own commands, but every command is checked against a whitelist that blocks any mutating (`create/put/delete/modify/...`) operation — the agent is **read-only by construction**.
+Design write-ups: [agent logic](docs/agent-logic.md) · [the whitelist-guarded CLI tool](docs/aws-cli-tool-design.md) · [tool selection](docs/tool-selection.md)
+
 - **Every tool call** goes through a shared executor that adds caching, retries, and input validation, so a flaky API or a malformed argument degrades gracefully instead of derailing the run.
 
 ## Tool layer
@@ -117,9 +119,11 @@ flowchart LR
 | `cloudfront_tool` | CloudFront | distributions, origins, behaviors |
 | `elb_tool` | ALB / NLB / ELB | listeners, rules, target health |
 | `ip_lookup_tool` | EC2 EIP + allowlist + geo | which resource / egress an IP belongs to |
-| `athena_vpc_flow_logs_tool` | Athena → VPC Flow Logs | traffic to/from an IP or ENI |
-| `athena_cloudfront_logs_tool` | Athena → CloudFront logs | requests, status codes, cache hits |
+| `athena_vpc_flow_logs_tool` ⚠️ | Athena → VPC Flow Logs | traffic to/from an IP or ENI |
+| `athena_cloudfront_logs_tool` ⚠️ | Athena → CloudFront logs | requests, status codes, cache hits |
 | `f5_waf_tool` | external WAF (Distributed Cloud) | LB / origin-pool / WAF policy lookups |
+
+⚠️ The two Athena log tools are written but **not yet working end-to-end** — they still need the Glue/Athena tables and permissions provisioned. Everything else in the table is in use.
 
 ## Tech stack
 
@@ -155,11 +159,11 @@ Credentials come from your standard AWS chain (env / SSO / role) — the agent n
 
 ## Deployment
 
-Deploy the Lambda + API Gateway with the provided **CloudFormation** or **Terraform** templates in `deployment/`. Grant the function a **read-only** IAM role (the tool whitelist enforces read-only at the app layer too — defense in depth).
+Deploy the Lambda + API Gateway with the provided **CloudFormation** or **Terraform** templates in `deployment/` — see the [deployment guide](docs/deployment.md). Grant the function a **read-only** IAM role (the tool whitelist enforces read-only at the app layer too — defense in depth).
 
 ## Integrations
 
-- **Microsoft Teams** — an outgoing-webhook handler responds to `@mention`s and keeps per-conversation context. See `docs/` for setup.
+- **Microsoft Teams** — an outgoing-webhook handler responds to `@mention`s and keeps per-conversation context. See the [Teams integration design](docs/teams-integration.md).
 
 ## Testing
 
