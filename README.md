@@ -11,9 +11,13 @@
 
 ## Overview
 
-Network troubleshooting on AWS usually means jumping between Route 53, CloudFront, the WAF, load balancers, target groups, and log queries — one console tab at a time. This agent collapses that into a conversation.
+Tracing a request path on AWS usually means jumping between Route 53, CloudFront, the WAF, load balancers and target groups — one console tab at a time. This agent collapses that into a conversation.
 
-Ask *"trace the DNS path for `app.example.com`"* or *"why is `203.0.113.20` unreachable?"* and the agent plans a sequence of read-only tool calls, walks the request path **from the edge to the origin**, queries the relevant logs, and returns a structured answer with the evidence it used. It runs as a Lambda behind API Gateway and can be driven over REST **or** by `@mention` in a Microsoft Teams channel.
+Ask *"trace `app.example.com`"* and it plans a sequence of read-only tool calls, walks the request path **from the edge to the origin**, and reports what it found at each hop — WAF and origin pool, DNS records, the load balancer, its listener rules and target health. Ask about an IP and it tells you which AWS resource it belongs to, whether it matches your corporate egress allowlist, and where it geolocates. Anything else that is a plain `describe`/`list` goes through a whitelisted read-only AWS CLI tool.
+
+It runs as a Lambda behind API Gateway and can be driven over REST **or** by `@mention` in a Microsoft Teams channel.
+
+**Scope — what it does not do.** It *maps and reports* the path; it does not diagnose **why** a target is unreachable (no security-group, NACL or route-table analysis, and no active connectivity probing). The Athena log-query tools are written but not yet working end-to-end.
 
 ## Key features
 
