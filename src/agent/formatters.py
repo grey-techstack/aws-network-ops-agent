@@ -255,91 +255,14 @@ class LogQueryFormatter(ResultFormatter):
             lines.append(f"Showing first {self.max_rows} of {result_count} results")
             lines.append("")
         
-        if query_type == "vpc_flow_logs":
-            table = self._format_vpc_flow_logs_table(display_results)
-        elif query_type == "cloudfront_logs":
-            table = self._format_cloudfront_logs_table(display_results)
-        else:
-            table = self._format_generic_table(display_results)
-        
+        table = self._format_generic_table(display_results)
         lines.extend(table)
         lines.append("")
         lines.append("=" * self.max_width)
         
         return "\n".join(lines)
     
-    def _format_vpc_flow_logs_table(self, results: List[Dict[str, Any]]) -> List[str]:
-        """Format VPC Flow Logs as a table."""
-        if not results:
-            return ["No VPC Flow Logs to display"]
-        
-        columns = [
-            ("Timestamp", 20),
-            ("Source IP", 15),
-            ("Dest IP", 15),
-            ("Src Port", 8),
-            ("Dst Port", 8),
-            ("Protocol", 8),
-            ("Action", 8)
-        ]
-        
-        lines = []
-        header = " | ".join(col[0].ljust(col[1]) for col in columns)
-        lines.append(header)
-        lines.append("-" * len(header))
-        
-        for result in results:
-            row_values = [
-                str(result.get("timestamp", "N/A"))[:20].ljust(20),
-                str(result.get("source_ip", "N/A"))[:15].ljust(15),
-                str(result.get("destination_ip", "N/A"))[:15].ljust(15),
-                str(result.get("source_port", "N/A"))[:8].ljust(8),
-                str(result.get("destination_port", "N/A"))[:8].ljust(8),
-                str(result.get("protocol", "N/A"))[:8].ljust(8),
-                str(result.get("action", "N/A"))[:8].ljust(8)
-            ]
-            lines.append(" | ".join(row_values))
-        
-        return lines
     
-    def _format_cloudfront_logs_table(self, results: List[Dict[str, Any]]) -> List[str]:
-        """Format CloudFront logs as a table."""
-        if not results:
-            return ["No CloudFront logs to display"]
-        
-        columns = [
-            ("Date", 10),
-            ("Time", 8),
-            ("Method", 6),
-            ("Host", 20),
-            ("URI", 25),
-            ("Status", 6),
-            ("Client IP", 15)
-        ]
-        
-        lines = []
-        header = " | ".join(col[0].ljust(col[1]) for col in columns)
-        lines.append(header)
-        lines.append("-" * len(header))
-        
-        for result in results:
-            row_values = [
-                str(result.get("date", "N/A"))[:10].ljust(10),
-                str(result.get("time", "N/A"))[:8].ljust(8),
-                str(result.get("cs_method", "N/A"))[:6].ljust(6),
-                str(result.get("cs_host", "N/A"))[:20].ljust(20),
-                str(result.get("cs_uri_stem", "N/A"))[:25].ljust(25),
-                str(result.get("sc_status", "N/A"))[:6].ljust(6),
-                str(result.get("c_ip", "N/A"))[:15].ljust(15)
-            ]
-            lines.append(" | ".join(row_values))
-        
-        lines.append("")
-        lines.append("Note: Additional fields available in full results:")
-        lines.append("  cs_uri_query, x_edge_result_type, x_edge_detailed_result_type,")
-        lines.append("  time_taken, time_to_first_byte, x_edge_location, x_forwarded_for")
-        
-        return lines
     
     def _format_generic_table(self, results: List[Dict[str, Any]]) -> List[str]:
         """Format generic results as a table."""

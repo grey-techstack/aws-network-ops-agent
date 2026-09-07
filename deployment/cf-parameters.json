@@ -44,14 +44,6 @@
     "ParameterValue": "512"
   },
   {
-    "ParameterKey": "AthenaDatabase",
-    "ParameterValue": "centralized_logging"
-  },
-  {
-    "ParameterKey": "AthenaOutputBucket",
-    "ParameterValue": "aws-ops-agent-athena-results-123456789012-ap-southeast-1"
-  },
-  {
     "ParameterKey": "ApiStageName",
     "ParameterValue": "dev"
   },

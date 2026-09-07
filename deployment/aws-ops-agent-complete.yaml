@@ -65,16 +65,6 @@ Parameters:
     MaxValue: 10240
     Description: Lambda function memory size in MB
   
-  # Athena Parameters
-  AthenaDatabase:
-    Type: String
-    Default: centralized_logging
-    Description: Athena database name for log queries
-  
-  AthenaOutputBucket:
-    Type: String
-    Description: S3 bucket for Athena query results (will be created if not exists)
-  
   # API Gateway Parameters
   ApiStageName:
     Type: String
@@ -88,33 +78,6 @@ Parameters:
     Description: Enable API key authentication
 
 Resources:
-  # S3 Bucket for Athena Results
-  AthenaResultsBucket:
-    Type: AWS::S3::Bucket
-    Properties:
-      BucketName: !Ref AthenaOutputBucket
-      BucketEncryption:
-        ServerSideEncryptionConfiguration:
-          - ServerSideEncryptionByDefault:
-              SSEAlgorithm: AES256
-      PublicAccessBlockConfiguration:
-        BlockPublicAcls: true
-        BlockPublicPolicy: true
-        IgnorePublicAcls: true
-        RestrictPublicBuckets: true
-      LifecycleConfiguration:
-        Rules:
-          - Id: DeleteOldQueryResults
-            Status: Enabled
-            ExpirationInDays: 7
-      Tags:
-        - Key: Application
-          Value: !Ref ProjectName
-        - Key: Environment
-          Value: !Ref Environment
-        - Key: ManagedBy
-          Value: CloudFormation
-
   # Lambda Execution Role
   LambdaExecutionRole:
     Type: AWS::IAM::Role
@@ -251,8 +214,6 @@ Resources:
           F5_SECRET_NAME: !Ref F5SecretName
           CORE_NETWORK_ACCOUNT_ID: !Ref CoreNetworkAccountId
           WORKLOAD_ACCOUNT_IDS: !Join [',', !Ref WorkloadAccountIds]
-          ATHENA_DATABASE: !Ref AthenaDatabase
-          ATHENA_OUTPUT_BUCKET: !Ref AthenaResultsBucket
           BEDROCK_MODEL_ID: 'us.amazon.nova-pro-v1:0'
           BEDROCK_REGION: 'us-east-1'
           LOG_LEVEL: INFO
@@ -464,13 +425,6 @@ Outputs:
     Value: !Ref F5SecretName
     Export:
       Name: !Sub '${AWS::StackName}-SecretName'
-  
-  # S3 Outputs
-  AthenaResultsBucketName:
-    Description: Name of the S3 bucket for Athena results
-    Value: !Ref AthenaResultsBucket
-    Export:
-      Name: !Sub '${AWS::StackName}-AthenaResultsBucketName'
   
   # API Key Output (conditional)
   ApiKeyId:

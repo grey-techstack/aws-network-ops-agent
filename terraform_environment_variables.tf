@@ -32,12 +32,6 @@ variable "f5_secret_name" {
   default     = "f5-distributed-cloud-api-credentials"
 }
 
-variable "athena_database" {
-  description = "Name of the Athena database for centralized logging"
-  type        = string
-  default     = "centralized_logging"
-}
-
 # Data sources
 data "aws_caller_identity" "current" {}
 data "aws_region" "current" {}
@@ -52,8 +46,6 @@ resource "aws_lambda_function" "aws_ops_agent" {
       F5_SECRET_NAME         = var.f5_secret_name
       CORE_NETWORK_ACCOUNT_ID = var.core_network_account_id
       WORKLOAD_ACCOUNT_IDS   = join(",", var.workload_account_ids)
-      ATHENA_DATABASE        = var.athena_database
-      ATHENA_OUTPUT_BUCKET   = "aws-ops-agent-athena-results-${data.aws_caller_identity.current.account_id}-${data.aws_region.current.name}"
     }
   }
 }
@@ -63,4 +55,3 @@ resource "aws_lambda_function" "aws_ops_agent" {
 # workload_account_ids = ["222222222222", "333333333333", "444444444444"]
 # global_reader_role_name = "GlobalReaderRole"
 # f5_secret_name = "f5-distributed-cloud-api-credentials"
-# athena_database = "centralized_logging"

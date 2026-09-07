@@ -22,7 +22,6 @@ export AWS_ACCOUNT_ID=123456789012
 
 # S3 存儲桶
 export DEPLOYMENT_BUCKET="aws-ops-agent-deployment-123456789012-ap-southeast-1"
-export ATHENA_OUTPUT_BUCKET="aws-ops-agent-athena-results-123456789012-ap-southeast-1"
 
 # Lambda 配置
 export LAMBDA_TIMEOUT=300
@@ -39,6 +38,5 @@ export PROJECT_NAME=aws-ops-agent
 export DEPLOYMENT_METHOD=cloudformation
 export GLOBAL_READER_ROLE_NAME=GlobalReaderRole
 export F5_SECRET_NAME=f5-distributed-cloud-api-credentials
-export ATHENA_DATABASE=centralized_logging
 
 echo "✅ 配置已加載"

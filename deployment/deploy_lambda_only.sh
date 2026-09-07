@@ -18,9 +18,7 @@ cat > cf-parameters-lambda.json << EOF
   {"ParameterKey": "F5ApiToken", "ParameterValue": "$F5_API_TOKEN"},
   {"ParameterKey": "F5Namespace", "ParameterValue": "$F5_NAMESPACE"},
   {"ParameterKey": "LambdaTimeout", "ParameterValue": "$LAMBDA_TIMEOUT"},
-  {"ParameterKey": "LambdaMemorySize", "ParameterValue": "$LAMBDA_MEMORY_SIZE"},
-  {"ParameterKey": "AthenaDatabase", "ParameterValue": "$ATHENA_DATABASE"},
-  {"ParameterKey": "AthenaOutputBucket", "ParameterValue": "$ATHENA_OUTPUT_BUCKET"}
+  {"ParameterKey": "LambdaMemorySize", "ParameterValue": "$LAMBDA_MEMORY_SIZE"}
 ]
 EOF
 

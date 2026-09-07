@@ -46,39 +46,12 @@ Parameters:
     Type: Number
     Default: 512
   
-  AthenaDatabase:
-    Type: String
-    Default: centralized_logging
-  
-  AthenaOutputBucket:
-    Type: String
-  
   LambdaHandler:
     Type: String
     Default: src.lambda_handler.lambda_handler
     Description: Lambda function handler (use src.lambda_handler.lambda_handler for full agent)
 
 Resources:
-  # S3 Bucket for Athena Results
-  AthenaResultsBucket:
-    Type: AWS::S3::Bucket
-    Properties:
-      BucketName: !Ref AthenaOutputBucket
-      BucketEncryption:
-        ServerSideEncryptionConfiguration:
-          - ServerSideEncryptionByDefault:
-              SSEAlgorithm: AES256
-      PublicAccessBlockConfiguration:
-        BlockPublicAcls: true
-        BlockPublicPolicy: true
-        IgnorePublicAcls: true
-        RestrictPublicBuckets: true
-      LifecycleConfiguration:
-        Rules:
-          - Id: DeleteOldQueryResults
-            Status: Enabled
-            ExpirationInDays: 7
-
   # Lambda Execution Role
   LambdaExecutionRole:
     Type: AWS::IAM::Role
@@ -153,16 +126,6 @@ Resources:
                   - elasticloadbalancing:DescribeRules
                 Resource: '*'
               
-              - Sid: AthenaAccess
-                Effect: Allow
-                Action:
-                  - athena:StartQueryExecution
-                  - athena:GetQueryExecution
-                  - athena:GetQueryResults
-                  - athena:StopQueryExecution
-                  - athena:GetWorkGroup
-                Resource: '*'
-              
               - Sid: GlueReadAccess
                 Effect: Allow
                 Action:
@@ -170,17 +133,6 @@ Resources:
                   - glue:GetTable
                   - glue:GetPartitions
                 Resource: '*'
-              
-              - Sid: S3AthenaAccess
-                Effect: Allow
-                Action:
-                  - s3:GetObject
-                  - s3:ListBucket
-                  - s3:GetBucketLocation
-                  - s3:PutObject
-                Resource:
-                  - !Sub '${AthenaResultsBucket.Arn}'
-                  - !Sub '${AthenaResultsBucket.Arn}/*'
               
               - Sid: EC2ReadAccess
                 Effect: Allow
@@ -236,8 +188,6 @@ Resources:
           F5_SECRET_NAME: !Ref F5SecretName
           CORE_NETWORK_ACCOUNT_ID: !Ref CoreNetworkAccountId
           WORKLOAD_ACCOUNT_IDS: !Join [',', !Ref WorkloadAccountIds]
-          ATHENA_DATABASE: !Ref AthenaDatabase
-          ATHENA_OUTPUT_BUCKET: !Ref AthenaResultsBucket
           LOG_LEVEL: INFO
 
   # CloudWatch Log Group

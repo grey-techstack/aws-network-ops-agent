@@ -10,7 +10,5 @@
   {"ParameterKey": "F5Namespace", "ParameterValue": "acme-net"},
   {"ParameterKey": "LambdaTimeout", "ParameterValue": "300"},
   {"ParameterKey": "LambdaMemorySize", "ParameterValue": "512"},
-  {"ParameterKey": "AthenaDatabase", "ParameterValue": "centralized_logging"},
-  {"ParameterKey": "AthenaOutputBucket", "ParameterValue": "aws-ops-agent-athena-results-123456789012-ap-southeast-1"},
   {"ParameterKey": "LambdaHandler", "ParameterValue": "src.lambda_handler.lambda_handler"}
 ]

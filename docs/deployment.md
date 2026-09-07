@@ -25,7 +25,6 @@ The AWS Operations Agent infrastructure includes:
 - **IAM Roles**: Execution role with cross-account access
 - **API Gateway**: REST API endpoint with CORS support
 - **Secrets Manager**: F5 API credentials storage
-- **S3 Bucket**: Athena query results storage
 - **CloudWatch Logs**: Function logging and monitoring
 
 ### Architecture Diagram
@@ -35,7 +34,7 @@ The AWS Operations Agent infrastructure includes:
 │   API Gateway   │───▶│  Lambda Function │───▶│   AWS Services  │
 │                 │    │                 │    │  (Route53, ELB, │
 │  - REST API     │    │  - Python 3.11  │    │   CloudFront,   │
-│  - CORS         │    │  - LangChain     │    │   Athena, etc.) │
+│  - CORS         │    │  - LangChain     │    │   etc.)         │
 │  - API Key      │    │  - 5min timeout  │    │                 │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
          │                       │                       │
@@ -99,7 +98,7 @@ Before deployment, gather:
 - **Workload Account IDs**: List of AWS accounts hosting application workloads
 - **F5 API URL**: F5 Distributed Cloud API endpoint
 - **F5 API Token**: F5 API token with appropriate permissions
-- **S3 Buckets**: Deployment bucket and Athena results bucket names
+- **S3 Bucket**: Deployment bucket name
 
 ## Deployment Options
 
@@ -172,10 +171,6 @@ Create `parameters.json`:
   {
     "ParameterKey": "F5ApiToken",
     "ParameterValue": "your-f5-api-token"
-  },
-  {
-    "ParameterKey": "AthenaOutputBucket",
-    "ParameterValue": "aws-ops-agent-athena-results-123456789012-us-east-1"
   },
   {
     "ParameterKey": "EnableApiKey",
@@ -265,7 +260,6 @@ core_network_account_id   = "111111111111"
 workload_account_ids      = ["222222222222", "333333333333"]
 f5_api_url               = "https://your-tenant.console.ves.volterra.io/api"
 f5_api_token             = "your-f5-api-token"
-athena_output_bucket     = "aws-ops-agent-athena-results-123456789012-us-east-1"
 deployment_bucket        = "aws-ops-agent-deployment-123456789012-us-east-1"
 enable_api_key           = true
 ```
@@ -301,7 +295,6 @@ export CORE_NETWORK_ACCOUNT_ID=111111111111
 export WORKLOAD_ACCOUNT_IDS=222222222222,333333333333
 export F5_API_URL=https://your-tenant.console.ves.volterra.io/api
 export F5_API_TOKEN=your-f5-api-token
-export ATHENA_OUTPUT_BUCKET=aws-ops-agent-athena-results-123456789012-us-east-1
 export DEPLOYMENT_BUCKET=aws-ops-agent-deployment-123456789012-us-east-1
 
 # Optional variables
@@ -462,7 +455,6 @@ jobs:
         export WORKLOAD_ACCOUNT_IDS=${{ secrets.WORKLOAD_ACCOUNT_IDS }}
         export F5_API_URL=${{ secrets.F5_API_URL }}
         export F5_API_TOKEN=${{ secrets.F5_API_TOKEN }}
-        export ATHENA_OUTPUT_BUCKET=${{ secrets.ATHENA_OUTPUT_BUCKET }}
         export DEPLOYMENT_BUCKET=${{ secrets.DEPLOYMENT_BUCKET }}
         ./deploy_complete_infrastructure.sh
 ```
@@ -691,7 +683,6 @@ aws secretsmanager get-secret-value --secret-id f5-distributed-cloud-api-credent
 - Use appropriate Lambda memory allocation
 - Enable API Gateway caching
 - Set CloudWatch log retention policies
-- Use S3 lifecycle policies for Athena results
 - Monitor and optimize resource usage
 
 ## Security Considerations

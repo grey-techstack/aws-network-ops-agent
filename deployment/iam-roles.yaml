@@ -147,35 +147,6 @@ Resources:
                   - elasticloadbalancing:DescribeTags
                 Resource: '*'
               
-              # Athena Read Access
-              - Sid: AthenaReadAccess
-                Effect: Allow
-                Action:
-                  - athena:GetQueryExecution
-                  - athena:GetQueryResults
-                  - athena:StartQueryExecution
-                  - athena:StopQueryExecution
-                  - athena:GetWorkGroup
-                  - athena:ListWorkGroups
-                  - athena:GetDataCatalog
-                  - athena:GetDatabase
-                  - athena:GetTableMetadata
-                  - athena:ListDatabases
-                  - athena:ListTableMetadata
-                Resource: '*'
-              
-              # S3 Access for Athena Results
-              - Sid: S3AthenaAccess
-                Effect: Allow
-                Action:
-                  - s3:GetObject
-                  - s3:PutObject
-                  - s3:ListBucket
-                  - s3:GetBucketLocation
-                Resource:
-                  - !Sub 'arn:aws:s3:::aws-ops-agent-athena-results-${AWS::AccountId}-${AWS::Region}'
-                  - !Sub 'arn:aws:s3:::aws-ops-agent-athena-results-${AWS::AccountId}-${AWS::Region}/*'
-              
               # EC2 Read Access (for IP lookups)
               - Sid: EC2ReadAccess
                 Effect: Allow
@@ -189,7 +160,7 @@ Resources:
                   - ec2:DescribePrefixLists
                 Resource: '*'
               
-              # Glue Data Catalog Access (for Athena)
+              # Glue Data Catalog Access
               - Sid: GlueDataCatalogAccess
                 Effect: Allow
                 Action:

@@ -58,12 +58,6 @@ AWS Ops Agent 現在採用 **"通用優先"** 策略：
 | 列出所有 F5 LB | `list_f5_load_balancers` | F5 不是 AWS 服務 |
 | 列出 namespaces | `list_f5_namespaces` | F5 不是 AWS 服務 |
 
-### Athena Logs (特殊查詢 - 可使用專用工具)
-| 查詢類型 | 使用工具 | 原因 |
-|---------|---------|------|
-| VPC Flow Logs | `query_vpc_flow_logs` | Athena 查詢優化 |
-| CloudFront Logs | `query_cloudfront_logs` | Athena 查詢優化 |
-
 ### AWS 服務 (備用 - 優先使用 AWS CLI Tool)
 | 查詢類型 | 優先工具 | 備用工具 |
 |---------|---------|---------|
@@ -185,8 +179,6 @@ System Prompt 中的指導：
 - query_f5_origin_pool - For F5 origin pool details (not AWS service)
 - list_f5_load_balancers - For F5 load balancer listing (not AWS service)
 - query_cloudfront_distribution - If you need domain-based CloudFront lookup
-- query_vpc_flow_logs - For Athena-based VPC flow log queries
-- query_cloudfront_logs - For Athena-based CloudFront log queries
 ```
 
 ## 📈 工具使用統計 (預期 - 新策略)
@@ -202,7 +194,6 @@ System Prompt 中的指導：
 
 ### 專用工具 (預期 10-20% 使用率)
 - F5 WAF tools - 中頻使用 (非 AWS 服務)
-- Athena log tools - 低頻使用 (特殊查詢)
 - 其他 AWS 專用工具 - 極低頻使用 (備用)
 
 ## 🔍 如何驗證工具選擇
@@ -271,8 +262,7 @@ aws lambda invoke --function-name aws-ops-agent-dev \
 
 ### 何時使用專用工具
 1. **F5 WAF**: 必須使用（非 AWS 服務）
-2. **Athena Logs**: 可選使用（特殊優化）
-3. **AWS 服務**: 只在 AWS CLI Tool 失敗時使用（備用）
+2. **AWS 服務**: 只在 AWS CLI Tool 失敗時使用（備用）
 
 ---
 

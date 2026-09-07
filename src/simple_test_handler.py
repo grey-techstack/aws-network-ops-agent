@@ -229,13 +229,6 @@ I can help you with the following AWS operations:
    - Query F5 load balancers and virtual hosts
    - Example: "Show F5 load balancers in namespace acme-net"
 
-5. **VPC Flow Logs** (Coming soon)
-   - Example: "Show flow logs for IP 10.0.1.5"
-
-6. **CloudFront Logs** (Coming soon)
-   - Query CloudFront access logs
-   - Example: "Show CloudFront logs for the last hour"
-
 **Current Status:**
 - Model: Amazon Nova Pro (apac.amazon.nova-pro-v1:0)
 - Region: ap-southeast-1

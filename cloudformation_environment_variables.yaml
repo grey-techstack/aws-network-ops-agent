@@ -6,8 +6,6 @@ Environment:
     F5_SECRET_NAME: "f5-distributed-cloud-api-credentials"
     CORE_NETWORK_ACCOUNT_ID: !Ref CoreNetworkAccountId
     WORKLOAD_ACCOUNT_IDS: !Ref WorkloadAccountIds
-    ATHENA_DATABASE: "centralized_logging"
-    ATHENA_OUTPUT_BUCKET: !Sub "aws-ops-agent-athena-results-${AWS::AccountId}-${AWS::Region}"
     BEDROCK_MODEL_ID: "us.amazon.nova-pro-v1:0"
     BEDROCK_REGION: "us-east-1"
     F5_CACHE_TABLE: "aws-ops-agent-f5-cache"

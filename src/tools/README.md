@@ -62,20 +62,6 @@ distribution = cloudfront_tool.query_distribution(domain_name="demo.example.com"
 # Query Load Balancer
 lb_info = elb_tool.query_load_balancer(dns_name="my-alb-123.us-east-1.elb.amazonaws.com")
 
-# Query VPC Flow Logs
-flow_logs = vpc_flow_logs_tool.query_flow_logs(
-    source_ip="10.0.1.100",
-    destination_ip="10.0.2.200"
-)
-
-# Query CloudFront Logs
-cf_logs = cloudfront_logs_tool.query_logs(
-    distribution_id="E285K0Z0YGWJXZ",
-    start_date="2025-01-01",
-    end_date="2025-01-07",
-    status_code_min=400,
-    status_code_max=599
-)
 ```
 
 ## Error Handling
@@ -94,7 +80,6 @@ These tools satisfy the following requirements from the design document:
 - **Requirement 1.3**: Route53 DNS record querying
 - **Requirement 1.4**: CloudFront distribution querying
 - **Requirements 1.5-1.8**: ALB/NLB querying with cross-account support
-- **Requirements 2.2-2.6**: CloudFront logs querying with all required fields
 
 ## Next Steps
 

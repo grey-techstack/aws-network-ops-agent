@@ -62,7 +62,7 @@ flowchart LR
         end
     end
 
-    API["AWS APIs<br/>Route 53 · CloudFront · ELB · Athena · EC2 · EKS"]
+    API["AWS APIs<br/>Route 53 · CloudFront · ELB · EC2 · EKS"]
     WAF["External WAF"]
 
     U -->|"@mention"| T
@@ -127,7 +127,7 @@ Design write-ups: [agent logic](docs/agent-logic.md) · [the whitelist-guarded C
 
 ## Tech stack
 
-**Python 3.9+** · **LangChain** on **Amazon Bedrock** · AWS **Lambda, API Gateway, Route 53, CloudFront, ELB, Athena, DynamoDB, CloudWatch, IAM/SSO** · **CloudFormation / Terraform** IaC · **Pydantic v2** · **pytest + hypothesis + moto** · integration: **Microsoft Teams**.
+**Python 3.9+** · **LangChain** on **Amazon Bedrock** · AWS **Lambda, API Gateway, Route 53, CloudFront, ELB, DynamoDB, CloudWatch, IAM/SSO** · **CloudFormation / Terraform** IaC · **Pydantic v2** · **pytest + hypothesis + moto** · integration: **Microsoft Teams**.
 
 ## Getting started
 

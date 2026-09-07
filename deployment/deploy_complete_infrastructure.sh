@@ -21,7 +21,6 @@ CORE_NETWORK_ACCOUNT_ID="${CORE_NETWORK_ACCOUNT_ID}"
 WORKLOAD_ACCOUNT_IDS="${WORKLOAD_ACCOUNT_IDS}"
 F5_API_URL="${F5_API_URL}"
 F5_API_TOKEN="${F5_API_TOKEN}"
-ATHENA_OUTPUT_BUCKET="${ATHENA_OUTPUT_BUCKET}"
 DEPLOYMENT_BUCKET="${DEPLOYMENT_BUCKET}"
 
 # Optional parameters with defaults
@@ -30,7 +29,6 @@ F5_SECRET_NAME="${F5_SECRET_NAME:-f5-distributed-cloud-api-credentials}"
 F5_NAMESPACE="${F5_NAMESPACE:-system}"
 LAMBDA_TIMEOUT="${LAMBDA_TIMEOUT:-300}"
 LAMBDA_MEMORY_SIZE="${LAMBDA_MEMORY_SIZE:-512}"
-ATHENA_DATABASE="${ATHENA_DATABASE:-centralized_logging}"
 API_STAGE_NAME="${API_STAGE_NAME:-prod}"
 ENABLE_API_KEY="${ENABLE_API_KEY:-false}"
 
@@ -89,7 +87,6 @@ validate_parameters() {
     [ -z "$WORKLOAD_ACCOUNT_IDS" ] && missing_params+=("WORKLOAD_ACCOUNT_IDS")
     [ -z "$F5_API_URL" ] && missing_params+=("F5_API_URL")
     [ -z "$F5_API_TOKEN" ] && missing_params+=("F5_API_TOKEN")
-    [ -z "$ATHENA_OUTPUT_BUCKET" ] && missing_params+=("ATHENA_OUTPUT_BUCKET")
     [ -z "$DEPLOYMENT_BUCKET" ] && missing_params+=("DEPLOYMENT_BUCKET")
     
     if [ ${#missing_params[@]} -ne 0 ]; then
@@ -121,8 +118,6 @@ display_config() {
     echo "  Workload Accounts: $WORKLOAD_ACCOUNT_IDS"
     echo "  F5 API URL: $F5_API_URL"
     echo "  F5 Namespace: $F5_NAMESPACE"
-    echo "  Athena Database: $ATHENA_DATABASE"
-    echo "  Athena Output Bucket: $ATHENA_OUTPUT_BUCKET"
     echo "  Deployment Bucket: $DEPLOYMENT_BUCKET"
     echo "  Lambda Timeout: ${LAMBDA_TIMEOUT}s"
     echo "  Lambda Memory: ${LAMBDA_MEMORY_SIZE}MB"
@@ -222,14 +217,6 @@ deploy_cloudformation() {
     "ParameterValue": "$LAMBDA_MEMORY_SIZE"
   },
   {
-    "ParameterKey": "AthenaDatabase",
-    "ParameterValue": "$ATHENA_DATABASE"
-  },
-  {
-    "ParameterKey": "AthenaOutputBucket",
-    "ParameterValue": "$ATHENA_OUTPUT_BUCKET"
-  },
-  {
     "ParameterKey": "ApiStageName",
     "ParameterValue": "$API_STAGE_NAME"
   },
@@ -294,8 +281,6 @@ f5_api_token             = "$F5_API_TOKEN"
 f5_namespace             = "$F5_NAMESPACE"
 lambda_timeout           = $LAMBDA_TIMEOUT
 lambda_memory_size       = $LAMBDA_MEMORY_SIZE
-athena_database          = "$ATHENA_DATABASE"
-athena_output_bucket     = "$ATHENA_OUTPUT_BUCKET"
 api_stage_name           = "$API_STAGE_NAME"
 enable_api_key           = $ENABLE_API_KEY
 deployment_bucket        = "$DEPLOYMENT_BUCKET"
@@ -418,7 +403,6 @@ show_usage() {
     echo "  WORKLOAD_ACCOUNT_IDS       Comma-separated list of Workload Account IDs"
     echo "  F5_API_URL                F5 Distributed Cloud API URL"
     echo "  F5_API_TOKEN              F5 API Token"
-    echo "  ATHENA_OUTPUT_BUCKET      S3 bucket for Athena query results"
     echo "  DEPLOYMENT_BUCKET         S3 bucket containing deployment packages"
     echo ""
     echo "Optional Environment Variables:"
@@ -427,7 +411,6 @@ show_usage() {
     echo "  F5_NAMESPACE             F5 namespace (default: system)"
     echo "  LAMBDA_TIMEOUT           Lambda timeout in seconds (default: 300)"
     echo "  LAMBDA_MEMORY_SIZE       Lambda memory in MB (default: 512)"
-    echo "  ATHENA_DATABASE          Athena database name (default: centralized_logging)"
     echo "  API_STAGE_NAME           API Gateway stage name (default: prod)"
     echo "  ENABLE_API_KEY           Enable API key authentication (default: false)"
     echo ""
@@ -437,7 +420,6 @@ show_usage() {
     echo "  export WORKLOAD_ACCOUNT_IDS=222222222222,333333333333"
     echo "  export F5_API_URL=https://tenant.console.ves.volterra.io/api"
     echo "  export F5_API_TOKEN=your-api-token"
-    echo "  export ATHENA_OUTPUT_BUCKET=aws-ops-agent-athena-results-123456789012-us-east-1"
     echo "  export DEPLOYMENT_BUCKET=aws-ops-agent-deployment-123456789012-us-east-1"
     echo "  $0"
     echo ""

@@ -209,38 +209,6 @@ resource "aws_iam_role_policy" "global_reader_policy" {
         Resource = "*"
       },
       {
-        Sid    = "AthenaReadAccess"
-        Effect = "Allow"
-        Action = [
-          "athena:GetQueryExecution",
-          "athena:GetQueryResults",
-          "athena:StartQueryExecution",
-          "athena:StopQueryExecution",
-          "athena:GetWorkGroup",
-          "athena:ListWorkGroups",
-          "athena:GetDataCatalog",
-          "athena:GetDatabase",
-          "athena:GetTableMetadata",
-          "athena:ListDatabases",
-          "athena:ListTableMetadata"
-        ]
-        Resource = "*"
-      },
-      {
-        Sid    = "S3AthenaAccess"
-        Effect = "Allow"
-        Action = [
-          "s3:GetObject",
-          "s3:PutObject",
-          "s3:ListBucket",
-          "s3:GetBucketLocation"
-        ]
-        Resource = [
-          "arn:aws:s3:::aws-ops-agent-athena-results-${data.aws_caller_identity.current.account_id}-${data.aws_region.current.name}",
-          "arn:aws:s3:::aws-ops-agent-athena-results-${data.aws_caller_identity.current.account_id}-${data.aws_region.current.name}/*"
-        ]
-      },
-      {
         Sid    = "EC2ReadAccess"
         Effect = "Allow"
         Action = [

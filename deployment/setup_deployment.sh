@@ -102,11 +102,9 @@ echo ""
 
 # S3 存儲桶
 DEPLOYMENT_BUCKET="aws-ops-agent-deployment-${AWS_ACCOUNT_ID}-${AWS_REGION}"
-ATHENA_OUTPUT_BUCKET="aws-ops-agent-athena-results-${AWS_ACCOUNT_ID}-${AWS_REGION}"
 
 echo -e "${GREEN}S3 存儲桶:${NC}"
 echo "  Deployment: $DEPLOYMENT_BUCKET"
-echo "  Athena Output: $ATHENA_OUTPUT_BUCKET"
 echo ""
 
 # 其他配置
@@ -153,7 +151,6 @@ export AWS_ACCOUNT_ID=$AWS_ACCOUNT_ID
 
 # S3 存儲桶
 export DEPLOYMENT_BUCKET="$DEPLOYMENT_BUCKET"
-export ATHENA_OUTPUT_BUCKET="$ATHENA_OUTPUT_BUCKET"
 
 # Lambda 配置
 export LAMBDA_TIMEOUT=$LAMBDA_TIMEOUT
@@ -170,7 +167,6 @@ export PROJECT_NAME=aws-ops-agent
 export DEPLOYMENT_METHOD=cloudformation
 export GLOBAL_READER_ROLE_NAME=GlobalReaderRole
 export F5_SECRET_NAME=f5-distributed-cloud-api-credentials
-export ATHENA_DATABASE=centralized_logging
 
 echo "✅ 配置已加載"
 EOF
@@ -194,7 +190,6 @@ echo "Lambda Timeout: ${LAMBDA_TIMEOUT}s"
 echo "Lambda Memory: ${LAMBDA_MEMORY_SIZE}MB"
 echo "Enable API Key: $ENABLE_API_KEY"
 echo "Deployment Bucket: $DEPLOYMENT_BUCKET"
-echo "Athena Bucket: $ATHENA_OUTPUT_BUCKET"
 echo ""
 
 # 詢問是否立即部署

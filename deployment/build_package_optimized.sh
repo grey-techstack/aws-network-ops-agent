@@ -290,8 +290,6 @@ Required Environment Variables:
   - F5_SECRET_NAME (for F5 WAF API)
   - CORE_NETWORK_ACCOUNT_ID
   - WORKLOAD_ACCOUNT_IDS
-  - ATHENA_DATABASE
-  - ATHENA_OUTPUT_BUCKET
 
 Next Steps:
   1. Upload lambda-layer.zip to S3 deployment bucket

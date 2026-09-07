@@ -97,17 +97,6 @@ variable "lambda_memory_size" {
   }
 }
 
-variable "athena_database" {
-  description = "Athena database name for log queries"
-  type        = string
-  default     = "centralized_logging"
-}
-
-variable "athena_output_bucket" {
-  description = "S3 bucket for Athena query results"
-  type        = string
-}
-
 variable "api_stage_name" {
   description = "API Gateway stage name"
   type        = string
@@ -128,49 +117,6 @@ variable "deployment_bucket" {
 # Data sources
 data "aws_caller_identity" "current" {}
 data "aws_region" "current" {}
-
-# S3 Bucket for Athena Results
-resource "aws_s3_bucket" "athena_results" {
-  bucket = var.athena_output_bucket
-
-  tags = {
-    Application = var.project_name
-    Environment = var.environment
-    ManagedBy   = "Terraform"
-  }
-}
-
-resource "aws_s3_bucket_encryption_configuration" "athena_results" {
-  bucket = aws_s3_bucket.athena_results.id
-
-  rule {
-    apply_server_side_encryption_by_default {
-      sse_algorithm = "AES256"
-    }
-  }
-}
-
-resource "aws_s3_bucket_public_access_block" "athena_results" {
-  bucket = aws_s3_bucket.athena_results.id
-
-  block_public_acls       = true
-  block_public_policy     = true
-  ignore_public_acls      = true
-  restrict_public_buckets = true
-}
-
-resource "aws_s3_bucket_lifecycle_configuration" "athena_results" {
-  bucket = aws_s3_bucket.athena_results.id
-
-  rule {
-    id     = "delete_old_query_results"
-    status = "Enabled"
-
-    expiration {
-      days = 7
-    }
-  }
-}
 
 # Lambda Execution Role
 resource "aws_iam_role" "lambda_execution_role" {
@@ -343,8 +289,6 @@ resource "aws_lambda_function" "main" {
       F5_SECRET_NAME         = var.f5_secret_name
       CORE_NETWORK_ACCOUNT_ID = var.core_network_account_id
       WORKLOAD_ACCOUNT_IDS   = join(",", var.workload_account_ids)
-      ATHENA_DATABASE        = var.athena_database
-      ATHENA_OUTPUT_BUCKET   = aws_s3_bucket.athena_results.id
       LOG_LEVEL              = "INFO"
     }
   }
@@ -581,11 +525,6 @@ output "secret_arn" {
 output "secret_name" {
   description = "Name of the F5 API credentials secret"
   value       = aws_secretsmanager_secret.f5_api_credentials.name
-}
-
-output "athena_results_bucket_name" {
-  description = "Name of the S3 bucket for Athena results"
-  value       = aws_s3_bucket.athena_results.id
 }
 
 output "api_key_id" {

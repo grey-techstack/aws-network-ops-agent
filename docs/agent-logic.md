@@ -272,8 +272,6 @@ execute_aws_cli_command - Use for general AWS queries not covered by specialized
 | `list_f5_namespaces` | List F5 namespaces (NOT AWS) |
 | `query_route53_records` | FQDN-based DNS lookup |
 | `query_cloudfront_distribution` | Domain-based CloudFront lookup |
-| `query_vpc_flow_logs` | Athena-based VPC log queries |
-| `query_cloudfront_logs` | Athena-based CloudFront log queries |
 
 ---
 

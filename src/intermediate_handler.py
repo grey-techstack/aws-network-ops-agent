@@ -16,7 +16,6 @@ logger.setLevel(logging.INFO)
 MODEL_ID = "apac.amazon.nova-pro-v1:0"
 REGION = "ap-southeast-1"
 
-
 def query_route53_basic(fqdn: str) -> Dict[str, Any]:
     """Basic Route53 query without credential manager."""
     try:
@@ -55,7 +54,6 @@ def query_route53_basic(fqdn: str) -> Dict[str, Any]:
         logger.error(f"Route53 query failed: {str(e)}")
         return {'error': str(e)}
 
-
 def process_query_with_tools(query: str) -> str:
     """Process query and determine if tools are needed."""
     query_lower = query.lower()
@@ -76,11 +74,6 @@ def process_query_with_tools(query: str) -> str:
 4. **F5 Distributed Cloud**: Query F5 load balancers and virtual hosts
    - Example: "Show F5 load balancers in namespace acme-net"
 
-   - Example: "Show flow logs for IP 10.0.1.5"
-
-6. **CloudFront Logs**: Query CloudFront access logs
-   - Example: "Show CloudFront logs for the last hour"
-
 Currently running with Amazon Nova Pro model in ap-southeast-1 region."""
     
     # Check if query is about Route53/DNS
@@ -99,7 +92,6 @@ Currently running with Amazon Nova Pro model in ap-southeast-1 region."""
     
     # For other queries, use Nova Pro to respond
     return None
-
 
 def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     """Intermediate handler with Nova Pro and basic AWS tools."""

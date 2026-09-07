@@ -120,8 +120,4 @@ EXAMPLE_QUERIES = {
         "Look up IP 203.0.113.61",
         "Is 203.0.113.55 in our SCP allowlist?"
     ],
-    "logs": [
-        "Query VPC flow logs for IP 10.0.1.100",
-        "Check CloudFront logs for errors in the last day"
-    ]
 }
