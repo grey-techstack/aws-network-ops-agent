@@ -2,8 +2,10 @@
 
 > A natural-language AWS network-operations agent — ask a plain-English question, get an end-to-end trace across your edge-to-origin path. Built on **Amazon Bedrock + LangChain**, deployed **serverless (Lambda + API Gateway)**, and callable straight from **Microsoft Teams**.
 
-![Python](https://img.shields.io/badge/python-3.9+-3f3f46)
-![License](https://img.shields.io/badge/license-MIT-3f3f46)
+![Amazon Bedrock](https://img.shields.io/badge/Amazon_Bedrock-LangChain-D97706)
+![Serverless](https://img.shields.io/badge/serverless-Lambda_·_API_Gateway-475569)
+![Python](https://img.shields.io/badge/python-3.9+-475569)
+![License](https://img.shields.io/badge/license-MIT-475569)
 
 ---
 
@@ -22,6 +24,45 @@ Ask *"trace the DNS path for `app.example.com`"* or *"why is `203.0.113.20` unre
 - **Multi-account** — assumes read-only cross-account roles via AWS SSO.
 - **Microsoft Teams chat** — driven by `@mention` in a channel, with per-conversation context.
 - **Production-grade internals** — per-call caching, retries, input validation, structured logging, and a unit + property-based (hypothesis) test suite.
+
+## Example
+
+Ask in a Teams channel — `@AWSBot trace app-uat.example.com` — and the agent walks the whole path and reports what it found:
+
+```text
+F5 WAF / load balancer (edge)
+  load balancer   lb-app-uat
+  domains         app-uat.example.com
+  cert expiry     2026-09-08  (131 days)
+  origin pool     pool-app-uat
+  origin server   app-uat-alb.apse1.api.example.com:443   (public_name)
+
+DNS resolution (Route 53)
+  fqdn            app-uat-alb.apse1.api.example.com
+  hosted zone     api.example.com   (/hostedzone/Z0123456789ABCD)
+  record          ALIAS → dualstack.alb-app-apse1-01.ap-southeast-1.elb.amazonaws.com
+
+CloudFront        not applicable
+
+Load balancer (ALB / NLB)
+  name            alb-app-apse1-01
+  listener        HTTPS :443   (host header: app-uat.example.com)
+  target group    tg-app-uat-apse1-80 — healthy 2/2
+  targets         10.0.0.11:80 (healthy) · 10.0.0.12:80 (healthy)
+
+✔ complete flow
+  app-uat.example.com → F5 WAF → Origin Pool → Route 53 → ALB → Target Group → EC2
+  elapsed 22.4s
+```
+
+Or investigate an IP — `@AWSBot what is 203.0.113.9?`:
+
+```text
+AWS Elastic IP        not found
+corporate allowlist   match 203.0.113.0/24   (SASE / secure web-gateway egress)
+geolocation           SASE vendor · AS·····  · edge PoP
+AWS IP range          not found
+```
 
 ## Architecture
 
@@ -53,10 +94,14 @@ flowchart LR
     TL --> API
     TL --> WAF
 
-    classDef base fill:#F4F4F5,stroke:#52525B,color:#18181B;
-    classDef core fill:#0F766E,stroke:#0F766E,color:#FFFFFF;
-    class U,T,AGW,B,TL,API,WAF base;
-    class O core;
+    classDef infra fill:#E2E8F0,stroke:#475569,color:#0F172A;
+    classDef agent fill:#FEF3C7,stroke:#D97706,color:#78350F;
+    classDef hero fill:#F59E0B,stroke:#B45309,color:#1F2937;
+    classDef sec fill:#FEE2E2,stroke:#B91C1C,color:#7F1D1D;
+    class U,T,AGW,API infra;
+    class B,TL agent;
+    class O hero;
+    class WAF sec;
 ```
 
 **The edge-to-origin path the agent traces**
@@ -72,10 +117,12 @@ flowchart LR
 
     NET --> R53 --> WAF --> CF --> ALB --> ORIG
 
-    classDef base fill:#F4F4F5,stroke:#52525B,color:#18181B;
-    classDef term fill:#0F766E,stroke:#0F766E,color:#FFFFFF;
-    class NET,R53,WAF,CF,ALB base;
-    class ORIG term;
+    classDef infra fill:#E2E8F0,stroke:#475569,color:#0F172A;
+    classDef sec fill:#FEE2E2,stroke:#B91C1C,color:#7F1D1D;
+    classDef dest fill:#F59E0B,stroke:#B45309,color:#1F2937;
+    class NET,R53,CF,ALB infra;
+    class WAF sec;
+    class ORIG dest;
 ```
 
 ## How the agent reasons
