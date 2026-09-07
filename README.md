@@ -32,25 +32,61 @@ Ask *"trace the DNS path for `app.example.com`"* or *"why is `203.0.113.20` unre
 
 ```mermaid
 flowchart LR
-    U["Engineer"] -->|"@mention"| T["Microsoft Teams"]
-    U -->|"REST"| AGW["API Gateway"]
-    T --> AGW
-    AGW --> O["LangChain agent orchestrator"]
-    O --> B["Amazon Bedrock LLM"]
-    O --> TL["Tool layer"]
-    TL --> AWS["AWS APIs: Route53, CloudFront, ELB, Athena, EC2, EKS"]
-    TL --> WAF["External WAF API"]
+    U["👤 Engineer"]
+    T["💬 Microsoft Teams"]
+
+    subgraph AWS ["☁️ AWS"]
+        AGW["🚪 API Gateway"]
+        subgraph RT ["⚡ Lambda · agent runtime"]
+            O["🧠 LangChain<br/>orchestrator"]
+            B["🤖 Amazon Bedrock"]
+            TL["🛠️ Tool layer"]
+        end
+    end
+
+    API["📡 AWS APIs<br/>Route53 · CloudFront · ELB<br/>Athena · EC2 · EKS"]
+    WAF["🛡️ External WAF"]
+
+    U -->|"@mention"| T
+    U -->|"REST"| AGW
+    T -->|"webhook"| AGW
+    AGW --> O
+    O <-->|"reason + act"| B
+    O --> TL
+    TL --> API
+    TL --> WAF
+
+    classDef client fill:#E3F2FD,stroke:#1565C0,color:#0D47A1;
+    classDef gw fill:#FFF3E0,stroke:#EF6C00,color:#E65100;
+    classDef ai fill:#F3E5F5,stroke:#7B1FA2,color:#4A148C;
+    classDef data fill:#E8F5E9,stroke:#2E7D32,color:#1B5E20;
+    classDef sec fill:#FFEBEE,stroke:#C62828,color:#B71C1C;
+    class U,T client;
+    class AGW gw;
+    class O,B,TL ai;
+    class API data;
+    class WAF sec;
 ```
 
 **The edge-to-origin path the agent traces**
 
 ```mermaid
 flowchart LR
-    NET["Internet"] --> R53["Route 53"]
-    R53 --> WAF["WAF"]
-    WAF --> CF["CloudFront"]
-    CF --> ALB["ALB / NLB"]
-    ALB --> ORIG["EC2 / EKS origin"]
+    NET["🌐 Internet"]
+    R53["🧭 Route 53"]
+    WAF["🛡️ WAF"]
+    CF["🚀 CloudFront"]
+    ALB["⚖️ ALB / NLB"]
+    ORIG["🖥️ EC2 / EKS<br/>origin"]
+
+    NET --> R53 --> WAF --> CF --> ALB --> ORIG
+
+    classDef edge fill:#E1F5FE,stroke:#0277BD,color:#01579B;
+    classDef sec fill:#FFEBEE,stroke:#C62828,color:#B71C1C;
+    classDef origin fill:#E8F5E9,stroke:#2E7D32,color:#1B5E20;
+    class NET,R53,CF edge;
+    class WAF sec;
+    class ALB,ORIG origin;
 ```
 
 ## How the agent reasons
