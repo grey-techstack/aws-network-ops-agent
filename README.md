@@ -2,11 +2,8 @@
 
 > A natural-language AWS network-operations agent — ask a plain-English question, get an end-to-end trace across your edge-to-origin path. Built on **Amazon Bedrock + LangChain**, deployed **serverless (Lambda + API Gateway)**, and callable straight from **Microsoft Teams**.
 
-![Python](https://img.shields.io/badge/python-3.9%2B-blue)
-![LLM](https://img.shields.io/badge/LLM-Amazon%20Bedrock-orange)
-![IaC](https://img.shields.io/badge/IaC-CloudFormation%20%7C%20Terraform-844fba)
-![License](https://img.shields.io/badge/license-MIT-green)
-![Tests](https://img.shields.io/badge/tests-pytest%20%2B%20hypothesis-brightgreen)
+![Python](https://img.shields.io/badge/python-3.9+-3f3f46)
+![License](https://img.shields.io/badge/license-MIT-3f3f46)
 
 ---
 
@@ -18,13 +15,13 @@ Ask *"trace the DNS path for `app.example.com`"* or *"why is `203.0.113.20` unre
 
 ## Key features
 
-- 🔎 **Edge-to-origin FQDN tracing** — resolves a hostname through WAF → Route 53 → CloudFront → ALB/NLB → EC2/EKS origin and reports what it found at each hop.
-- 🧠 **Natural-language log analysis** — turns questions into **Athena** queries over VPC Flow Logs and CloudFront access logs.
-- 🌐 **IP investigation** — maps an IP to its AWS resource, checks it against a corporate egress allowlist, and adds geolocation.
-- 🛠️ **Self-composing AWS CLI tool** — the LLM builds its own AWS CLI commands behind a **read-only operation whitelist**, so it can reach EC2/EKS/RDS/etc. without a bespoke tool per service.
-- 🏢 **Multi-account** — assumes read-only cross-account roles via AWS SSO.
-- 💬 **Microsoft Teams chat** — drive the agent by `@mention` in a channel, with per-conversation context.
-- ✅ **Production-grade guts** — per-call caching, retries, input validation, structured logging, and a unit + property-based (`hypothesis`) test suite.
+- **Edge-to-origin FQDN tracing** — resolves a hostname through WAF → Route 53 → CloudFront → ALB/NLB → EC2/EKS origin and reports what it found at each hop.
+- **Natural-language log analysis** — turns questions into Athena queries over VPC Flow Logs and CloudFront access logs.
+- **IP investigation** — maps an IP to its AWS resource, checks it against a corporate egress allowlist, and adds geolocation.
+- **Self-composing AWS CLI tool** — the LLM builds its own AWS CLI commands behind a read-only operation whitelist, reaching EC2/EKS/RDS/etc. without a bespoke tool per service.
+- **Multi-account** — assumes read-only cross-account roles via AWS SSO.
+- **Microsoft Teams chat** — driven by `@mention` in a channel, with per-conversation context.
+- **Production-grade internals** — per-call caching, retries, input validation, structured logging, and a unit + property-based (hypothesis) test suite.
 
 ## Architecture
 
@@ -32,20 +29,20 @@ Ask *"trace the DNS path for `app.example.com`"* or *"why is `203.0.113.20` unre
 
 ```mermaid
 flowchart LR
-    U["👤 Engineer"]
-    T["💬 Microsoft Teams"]
+    U["Engineer"]
+    T["Microsoft Teams"]
 
-    subgraph AWS ["☁️ AWS"]
-        AGW["🚪 API Gateway"]
-        subgraph RT ["⚡ Lambda · agent runtime"]
-            O["🧠 LangChain<br/>orchestrator"]
-            B["🤖 Amazon Bedrock"]
-            TL["🛠️ Tool layer"]
+    subgraph AWS ["AWS"]
+        AGW["API Gateway"]
+        subgraph RT ["Lambda &mdash; agent runtime"]
+            O["LangChain orchestrator"]
+            B["Amazon Bedrock LLM"]
+            TL["Tool layer"]
         end
     end
 
-    API["📡 AWS APIs<br/>Route53 · CloudFront · ELB<br/>Athena · EC2 · EKS"]
-    WAF["🛡️ External WAF"]
+    API["AWS APIs<br/>Route 53 · CloudFront · ELB · Athena · EC2 · EKS"]
+    WAF["External WAF"]
 
     U -->|"@mention"| T
     U -->|"REST"| AGW
@@ -56,37 +53,29 @@ flowchart LR
     TL --> API
     TL --> WAF
 
-    classDef client fill:#E3F2FD,stroke:#1565C0,color:#0D47A1;
-    classDef gw fill:#FFF3E0,stroke:#EF6C00,color:#E65100;
-    classDef ai fill:#F3E5F5,stroke:#7B1FA2,color:#4A148C;
-    classDef data fill:#E8F5E9,stroke:#2E7D32,color:#1B5E20;
-    classDef sec fill:#FFEBEE,stroke:#C62828,color:#B71C1C;
-    class U,T client;
-    class AGW gw;
-    class O,B,TL ai;
-    class API data;
-    class WAF sec;
+    classDef base fill:#F4F4F5,stroke:#52525B,color:#18181B;
+    classDef core fill:#0F766E,stroke:#0F766E,color:#FFFFFF;
+    class U,T,AGW,B,TL,API,WAF base;
+    class O core;
 ```
 
 **The edge-to-origin path the agent traces**
 
 ```mermaid
 flowchart LR
-    NET["🌐 Internet"]
-    R53["🧭 Route 53"]
-    WAF["🛡️ WAF"]
-    CF["🚀 CloudFront"]
-    ALB["⚖️ ALB / NLB"]
-    ORIG["🖥️ EC2 / EKS<br/>origin"]
+    NET["Internet"]
+    R53["Route 53"]
+    WAF["WAF"]
+    CF["CloudFront"]
+    ALB["ALB / NLB"]
+    ORIG["EC2 / EKS origin"]
 
     NET --> R53 --> WAF --> CF --> ALB --> ORIG
 
-    classDef edge fill:#E1F5FE,stroke:#0277BD,color:#01579B;
-    classDef sec fill:#FFEBEE,stroke:#C62828,color:#B71C1C;
-    classDef origin fill:#E8F5E9,stroke:#2E7D32,color:#1B5E20;
-    class NET,R53,CF edge;
-    class WAF sec;
-    class ALB,ORIG origin;
+    classDef base fill:#F4F4F5,stroke:#52525B,color:#18181B;
+    classDef term fill:#0F766E,stroke:#0F766E,color:#FFFFFF;
+    class NET,R53,WAF,CF,ALB base;
+    class ORIG term;
 ```
 
 ## How the agent reasons
